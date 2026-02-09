@@ -2,40 +2,34 @@
   "name": "HomeStock - Smart Home Inventory",
   "short_name": "HomeStock",
   "description": "Track your food, appliances, and daily supplies with smart expiry notifications",
-  "start_url": "/",
+  "start_url": "/homestock/",
+  "scope": "/homestock/",
   "display": "standalone",
   "background_color": "#f0fdf4",
   "theme_color": "#10b981",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "/homestock/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "/homestock/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
   ],
   "categories": ["productivity", "lifestyle", "utilities"],
-  "screenshots": [
-    {
-      "src": "screenshot1.png",
-      "sizes": "540x720",
-      "type": "image/png"
-    }
-  ],
   "shortcuts": [
     {
       "name": "Add Item",
       "short_name": "Add",
       "description": "Quick add new item",
-      "url": "/?action=add",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+      "url": "/homestock/?action=add",
+      "icons": [{ "src": "/homestock/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

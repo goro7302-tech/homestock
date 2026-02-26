@@ -49,6 +49,10 @@
       animation: slideUp 0.3s ease-out;
     }
   </style>
+  <!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <div id="root"></div>
@@ -1434,5 +1438,31 @@
       });
     }
   </script>
+  <script>
+// Firebase 設定
+const firebaseConfig = {
+  apiKey: "AIzaSyAG9kyyfaky3vXtdS36zbzbAfvjQssUTtk",
+  authDomain: "homestock-4a4f0.firebaseapp.com",
+  projectId: "homestock-4a4f0",
+  storageBucket: "homestock-4a4f0.firebasestorage.app",
+  messagingSenderId: "377612858891",
+  appId: "1:377612858891:web:975d5b70bf09034310790e",
+};
+
+// Firebase 初期化
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// オフライン対応
+db.enablePersistence()
+  .catch((err) => {
+    if (err.code == 'failed-precondition') {
+      console.log('Multiple tabs open');
+    } else if (err.code == 'unimplemented') {
+      console.log('Browser doesn\'t support offline');
+    }
+  });
+</script>
 </body>
 </html>

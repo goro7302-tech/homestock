@@ -20,6 +20,9 @@
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+  <!-- Stripe -->
+  <script src="https://js.stripe.com/v3/"></script>
+
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -441,6 +444,17 @@
         { id: 'other', name: t.locations.other }
       ];
 
+      // 決済完了通知
+      useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('payment') === 'success') {
+          alert(language === 'ja' ? '🎉 アップグレード完了！ありがとうございます。' : '🎉 Upgrade complete! Thank you.');
+          window.history.replaceState({}, '', window.location.pathname);
+        } else if (params.get('payment') === 'cancel') {
+          window.history.replaceState({}, '', window.location.pathname);
+        }
+      }, []);
+
       // Load items from Firestore
       useEffect(() => {
         if (!user) return;
@@ -515,6 +529,27 @@
       const handleDelete = async (id) => {
         if (window.confirm(t.deleteConfirm)) {
           await db.collection('users').doc(user.uid).collection('items').doc(id).delete();
+        }
+      };
+
+      // Stripe決済
+      const handleStripeCheckout = async (plan) => {
+        const stripe = Stripe('pk_test_51T5QmhKsRfeHX0L79mGkGTjyobidITVmTrLGCLIBxaAvXn2j4nO8VG4LWRjGlFQMCVYvB0fiO4OOLA2lhXNnxfHf00nfNWYCTk');
+        const priceIds = {
+          premium: 'price_1T5R36KsRfeHX0L7k9W8xwGW',
+          pro: 'price_1T5R3lKsRfeHX0L7fnLO6Qax'
+        };
+        try {
+          const { error } = await stripe.redirectToCheckout({
+            lineItems: [{ price: priceIds[plan], quantity: 1 }],
+            mode: 'subscription',
+            successUrl: window.location.origin + '?payment=success',
+            cancelUrl: window.location.origin + '?payment=cancel',
+            customerEmail: user.email,
+          });
+          if (error) alert(error.message);
+        } catch (err) {
+          alert(language === 'ja' ? '決済の開始に失敗しました。しばらくしてから再試行してください。' : 'Failed to start checkout. Please try again.');
         }
       };
 
@@ -1026,12 +1061,118 @@
                 <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                   <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👑</div>
                   <h2 style={{ fontSize: '1.75rem', fontWeight: '700', marginBottom: '0.5rem' }}>
-                    {t.upgrade} to Premium
+                    {language === 'ja' ? 'プランをアップグレード' : 'Upgrade Your Plan'}
                   </h2>
-                  <p style={{ color: '#6b7280' }}>{t.comingSoon}</p>
+                  <p style={{ color: '#6b7280', fontSize: '0.95rem' }}>
+                    {language === 'ja' ? 'より多くの機能でホームストックを活用しましょう' : 'Unlock more features for your home inventory'}
+                  </p>
                 </div>
+
+                <div style={{ display: 'grid', gap: '1rem', marginBottom: '1.5rem' }}>
+                  {/* Free Plan */}
+                  <div style={{ border: '2px solid #e5e7eb', borderRadius: '16px', padding: '1.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <div style={{ fontWeight: '700', fontSize: '1.1rem' }}>{t.freePlan}</div>
+                      <div style={{ fontSize: '1.5rem', fontWeight: '700' }}>¥0</div>
+                    </div>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      {[
+                        language === 'ja' ? '30アイテムまで' : 'Up to 30 items',
+                        language === 'ja' ? '基本的な在庫管理' : 'Basic inventory management',
+                        language === 'ja' ? 'CSVエクスポート' : 'CSV export',
+                      ].map((f, i) => (
+                        <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: '#6b7280' }}>
+                          <Check size={16} color="#10b981" />{f}
+                        </li>
+                      ))}
+                    </ul>
+                    <div style={{ marginTop: '1rem', padding: '0.75rem', background: '#f3f4f6', borderRadius: '8px', textAlign: 'center', fontSize: '0.9rem', color: '#6b7280', fontWeight: '600' }}>
+                      {language === 'ja' ? '現在のプラン' : 'Current Plan'}
+                    </div>
+                  </div>
+
+                  {/* Premium Plan */}
+                  <div style={{ border: '2px solid #10b981', borderRadius: '16px', padding: '1.5rem', background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)', position: 'relative' }}>
+                    <div style={{
+                      position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)',
+                      background: '#10b981', color: 'white', padding: '0.25rem 1rem',
+                      borderRadius: '20px', fontSize: '0.75rem', fontWeight: '700'
+                    }}>
+                      {language === 'ja' ? '人気No.1' : 'Most Popular'}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <div style={{ fontWeight: '700', fontSize: '1.1rem' }}>{t.premiumPlan}</div>
+                      <div>
+                        <span style={{ fontSize: '1.5rem', fontWeight: '700' }}>¥480</span>
+                        <span style={{ fontSize: '0.85rem', color: '#6b7280' }}>{t.perMonth}</span>
+                      </div>
+                    </div>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+                      {[
+                        language === 'ja' ? 'アイテム無制限' : 'Unlimited items',
+                        language === 'ja' ? 'バーコードスキャン' : 'Barcode scanning',
+                        language === 'ja' ? '家族共有（5人まで）' : 'Family sharing (up to 5)',
+                        language === 'ja' ? 'レシートOCR（月10枚）' : 'Receipt OCR (10/month)',
+                        language === 'ja' ? '優先サポート' : 'Priority support',
+                      ].map((f, i) => (
+                        <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
+                          <Check size={16} color="#10b981" />{f}
+                        </li>
+                      ))}
+                    </ul>
+                    <button
+                      onClick={() => handleStripeCheckout('premium')}
+                      style={{
+                        width: '100%', padding: '0.875rem',
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        color: 'white', border: 'none', borderRadius: '10px',
+                        fontWeight: '700', fontSize: '1rem', cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(16,185,129,0.3)'
+                      }}
+                    >
+                      {language === 'ja' ? 'プレミアムにアップグレード' : 'Upgrade to Premium'}
+                    </button>
+                  </div>
+
+                  {/* Pro Plan */}
+                  <div style={{ border: '2px solid #6366f1', borderRadius: '16px', padding: '1.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <div style={{ fontWeight: '700', fontSize: '1.1rem' }}>{t.proPlan}</div>
+                      <div>
+                        <span style={{ fontSize: '1.5rem', fontWeight: '700' }}>¥980</span>
+                        <span style={{ fontSize: '0.85rem', color: '#6b7280' }}>{t.perMonth}</span>
+                      </div>
+                    </div>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+                      {[
+                        language === 'ja' ? 'プレミアムの全機能' : 'All Premium features',
+                        language === 'ja' ? 'レシートOCR無制限' : 'Unlimited receipt OCR',
+                        language === 'ja' ? '購買分析レポート' : 'Purchase analytics',
+                        language === 'ja' ? 'API連携' : 'API integration',
+                        language === 'ja' ? '専任サポート' : 'Dedicated support',
+                      ].map((f, i) => (
+                        <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
+                          <Check size={16} color="#6366f1" />{f}
+                        </li>
+                      ))}
+                    </ul>
+                    <button
+                      onClick={() => handleStripeCheckout('pro')}
+                      style={{
+                        width: '100%', padding: '0.875rem',
+                        background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                        color: 'white', border: 'none', borderRadius: '10px',
+                        fontWeight: '700', fontSize: '1rem', cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(99,102,241,0.3)'
+                      }}
+                    >
+                      {language === 'ja' ? 'プロにアップグレード' : 'Upgrade to Pro'}
+                    </button>
+                  </div>
+                </div>
+
                 <button onClick={() => setShowUpgradeModal(false)} style={{
-                  width: '100%', padding: '1rem', background: '#f3f4f6', border: 'none',
+                  width: '100%', padding: '0.875rem', background: '#f3f4f6', border: 'none',
                   borderRadius: '10px', fontSize: '1rem', fontWeight: '600', cursor: 'pointer'
                 }}>{t.cancel}</button>
               </div>

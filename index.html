@@ -1179,6 +1179,33 @@
             </div>
           )}
 
+          {/* Footer */}
+          <footer style={{
+            borderTop: '1px solid rgba(0,0,0,0.06)',
+            padding: '1.5rem',
+            textAlign: 'center',
+            marginTop: '1rem'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap', fontSize: '0.8rem', color: '#9ca3af' }}>
+              <span>© 2026 株式会社ハイタッチ</span>
+              <a href="/privacy.html" style={{ color: '#9ca3af', textDecoration: 'none' }}
+                onMouseOver={e => e.target.style.color='#10b981'}
+                onMouseOut={e => e.target.style.color='#9ca3af'}>
+                プライバシーポリシー
+              </a>
+              <a href="/tokushoho.html" style={{ color: '#9ca3af', textDecoration: 'none' }}
+                onMouseOver={e => e.target.style.color='#10b981'}
+                onMouseOut={e => e.target.style.color='#9ca3af'}>
+                特定商取引法に基づく表記
+              </a>
+              <a href="mailto:goro@high-touch.jp" style={{ color: '#9ca3af', textDecoration: 'none' }}
+                onMouseOver={e => e.target.style.color='#10b981'}
+                onMouseOut={e => e.target.style.color='#9ca3af'}>
+                お問い合わせ
+              </a>
+            </div>
+          </footer>
+
           <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
         </div>
       );

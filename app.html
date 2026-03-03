@@ -444,16 +444,21 @@
         { id: 'other', name: t.locations.other }
       ];
 
-      // 決済完了通知
+      // 決済完了通知 & アップグレードモーダル自動オープン
+      // user依存にすることでログイン完了後にも再チェックされる
       useEffect(() => {
+        if (user === undefined) return; // まだ認証状態確認中
         const params = new URLSearchParams(window.location.search);
         if (params.get('payment') === 'success') {
           alert(language === 'ja' ? '🎉 アップグレード完了！ありがとうございます。' : '🎉 Upgrade complete! Thank you.');
           window.history.replaceState({}, '', window.location.pathname);
         } else if (params.get('payment') === 'cancel') {
           window.history.replaceState({}, '', window.location.pathname);
+        } else if (params.get('upgrade') === '1' && user) {
+          setShowUpgradeModal(true);
+          window.history.replaceState({}, '', window.location.pathname);
         }
-      }, []);
+      }, [user]);
 
       // Load items from Firestore
       useEffect(() => {

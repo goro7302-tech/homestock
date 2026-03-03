@@ -549,26 +549,17 @@
         }
       };
 
-      // Stripe決済
-      const handleStripeCheckout = async (plan) => {
-        const stripe = Stripe('pk_live_51T5QmF3CLaVT5Lpkhsml5OPrNbHJFkZnKlks6rt7r3r64Nv89qWksMmROLT37Kr3sKxSX4ig3ReywfJZh5ZXmJR2000TxaepKR');
-        // 言語設定に応じてJPY/USDの価格IDを切り替え
-        const priceIds = {
-          premium: language === 'ja' ? 'price_1T6t5K3CLaVT5LpkRTTadWle' : 'price_1T6tFz3CLaVT5LpksXfWzdWE',
-          pro:     language === 'ja' ? 'price_1T6t643CLaVT5Lpk21robEVZ' : 'price_1T6tFV3CLaVT5LpkBBvpFvQX',
+      // Stripe決済 - Payment Links方式
+      const handleStripeCheckout = (plan) => {
+        const paymentLinks = {
+          premium_ja: 'https://buy.stripe.com/3cIaEQ4BY9ND0eu1Qi0oM00',
+          premium_en: 'https://buy.stripe.com/3cI14gfgC4tj1iybqS0oM01',
+          pro_ja:     'https://buy.stripe.com/dRm5kwgkG2lbbXc8eG0oM02',
+          pro_en:     'https://buy.stripe.com/9B600c7Oa4tjaT8fH80oM03',
         };
-        try {
-          const { error } = await stripe.redirectToCheckout({
-            lineItems: [{ price: priceIds[plan], quantity: 1 }],
-            mode: 'subscription',
-            successUrl: window.location.origin + '/app.html?payment=success',
-            cancelUrl: window.location.origin + '/app.html?payment=cancel',
-            customerEmail: user.email,
-          });
-          if (error) alert(error.message);
-        } catch (err) {
-          alert(language === 'ja' ? '決済の開始に失敗しました。しばらくしてから再試行してください。' : 'Failed to start checkout. Please try again.');
-        }
+        const key = plan + (language === 'ja' ? '_ja' : '_en');
+        const url = paymentLinks[key];
+        window.location.href = url + '?prefilled_email=' + encodeURIComponent(user.email);
       };
 
       const exportToCSV = () => {

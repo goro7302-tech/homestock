@@ -444,19 +444,31 @@
         { id: 'other', name: t.locations.other }
       ];
 
-      // 決済完了通知 & アップグレードモーダル自動オープン
-      // user依存にすることでログイン完了後にも再チェックされる
+      // URLパラメーターをsessionStorageに保存（ログイン前に消えないよう）
       useEffect(() => {
-        if (user === undefined) return; // まだ認証状態確認中
         const params = new URLSearchParams(window.location.search);
+        if (params.get('upgrade') === '1') {
+          sessionStorage.setItem('pendingUpgrade', '1');
+          window.history.replaceState({}, '', window.location.pathname);
+        }
         if (params.get('payment') === 'success') {
-          alert(language === 'ja' ? '🎉 アップグレード完了！ありがとうございます。' : '🎉 Upgrade complete! Thank you.');
+          sessionStorage.setItem('paymentSuccess', '1');
           window.history.replaceState({}, '', window.location.pathname);
         } else if (params.get('payment') === 'cancel') {
           window.history.replaceState({}, '', window.location.pathname);
-        } else if (params.get('upgrade') === '1' && user) {
+        }
+      }, []);
+
+      // ログイン完了後にsessionStorageをチェックしてモーダルを開く
+      useEffect(() => {
+        if (!user) return;
+        if (sessionStorage.getItem('pendingUpgrade') === '1') {
+          sessionStorage.removeItem('pendingUpgrade');
           setShowUpgradeModal(true);
-          window.history.replaceState({}, '', window.location.pathname);
+        }
+        if (sessionStorage.getItem('paymentSuccess') === '1') {
+          sessionStorage.removeItem('paymentSuccess');
+          alert(language === 'ja' ? '🎉 アップグレード完了！ありがとうございます。' : '🎉 Upgrade complete! Thank you.');
         }
       }, [user]);
 

@@ -499,6 +499,7 @@
       const toggleLanguage = () => {
         const newLang = language === 'ja' ? 'en' : 'ja';
         setLanguage(newLang);
+        localStorage.setItem('hs_lang', newLang);
         localStorage.setItem('homestock_language', newLang);
       };
 
@@ -1224,7 +1225,8 @@
     const App = () => {
       const [user, setUser] = useState(undefined); // undefined = loading, null = not logged in
       const [language, setLanguage] = useState(() => {
-        const saved = localStorage.getItem('homestock_language');
+        // ランディングページと同じキー 'hs_lang' を使用
+        const saved = localStorage.getItem('hs_lang') || localStorage.getItem('homestock_language');
         if (saved) return saved;
         return navigator.language.startsWith('ja') ? 'ja' : 'en';
       });
@@ -1237,6 +1239,7 @@
       const toggleLanguage = () => {
         const newLang = language === 'ja' ? 'en' : 'ja';
         setLanguage(newLang);
+        localStorage.setItem('hs_lang', newLang);
         localStorage.setItem('homestock_language', newLang);
       };
 

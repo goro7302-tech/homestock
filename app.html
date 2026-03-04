@@ -619,14 +619,6 @@
 
       const startScanner = async () => {
         if (items.length >= MAX_FREE_ITEMS) { setShowUpgradeModal(true); return; }
-
-        if (!('BarcodeDetector' in window)) {
-          alert(language === 'ja'
-            ? 'バーコードスキャンにはiOS 17.4以上のSafariが必要です。'
-            : 'Barcode scanning requires Safari on iOS 17.4 or later.');
-          return;
-        }
-
         setShowScanner(true);
         setScanStatus('scanning');
 
@@ -637,32 +629,61 @@
           streamRef.current = stream;
 
           await new Promise((resolve, reject) => {
-            if (!videoRef.current) { reject(); return; }
+            if (!videoRef.current) { reject(new Error('no video')); return; }
             videoRef.current.srcObject = stream;
             videoRef.current.onloadedmetadata = () => {
               videoRef.current.play().then(resolve).catch(reject);
             };
           });
 
-          const detector = new BarcodeDetector({
-            formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf']
-          });
+          // BarcodeDetector が使えるか実際に試す
+          let detectorWorks = false;
+          try {
+            const testDetector = new BarcodeDetector({ formats: ['ean_13'] });
+            detectorWorks = true;
+          } catch(e) {}
 
-          const scan = async () => {
-            if (!videoRef.current || !streamRef.current) return;
-            try {
-              const codes = await detector.detect(videoRef.current);
-              if (codes.length > 0) {
-                stopCamera();
-                await lookupBarcode(codes[0].rawValue);
-                return;
-              }
-            } catch(e) {}
-            if (streamRef.current) setTimeout(scan, 150);
-          };
-
-          // 映像が安定するまで少し待ってからスキャン開始
-          setTimeout(scan, 800);
+          if (detectorWorks) {
+            const detector = new BarcodeDetector({
+              formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39']
+            });
+            const scan = async () => {
+              if (!videoRef.current || !streamRef.current) return;
+              try {
+                const codes = await detector.detect(videoRef.current);
+                if (codes.length > 0) {
+                  stopCamera();
+                  await lookupBarcode(codes[0].rawValue);
+                  return;
+                }
+              } catch(e) {}
+              if (streamRef.current) setTimeout(scan, 200);
+            };
+            setTimeout(scan, 800);
+          } else {
+            // BarcodeDetector非対応 → canvas + ImageCapture方式
+            const canvasScan = async () => {
+              if (!videoRef.current || !streamRef.current) return;
+              const canvas = document.createElement('canvas');
+              canvas.width = videoRef.current.videoWidth;
+              canvas.height = videoRef.current.videoHeight;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(videoRef.current, 0, 0);
+              try {
+                const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg'));
+                const imgBitmap = await createImageBitmap(blob);
+                const detector2 = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128'] });
+                const codes = await detector2.detect(imgBitmap);
+                if (codes.length > 0) {
+                  stopCamera();
+                  await lookupBarcode(codes[0].rawValue);
+                  return;
+                }
+              } catch(e) {}
+              if (streamRef.current) setTimeout(canvasScan, 300);
+            };
+            setTimeout(canvasScan, 800);
+          }
 
         } catch(e) {
           closeScanner();

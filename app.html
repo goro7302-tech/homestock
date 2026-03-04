@@ -626,37 +626,46 @@
         setShowScanner(true);
         setScanStatus('scanning');
         try {
-          // ZXing-js（iOS Safari含む全ブラウザ対応）
+          // 先にカメラ権限を取得（iOS Safari対応）
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+          });
+          streamRef.current = stream;
+          // videoにセット
+          await new Promise(resolve => {
+            if (!videoRef.current) { resolve(); return; }
+            videoRef.current.srcObject = stream;
+            videoRef.current.onloadedmetadata = () => { videoRef.current.play(); resolve(); };
+          });
+
           if (window.ZXing) {
+            // ZXing-jsを使用（iOS Safari対応）
             const hints = new Map();
-            const formats = [
+            hints.set(window.ZXing.DecodeHintType.POSSIBLE_FORMATS, [
               window.ZXing.BarcodeFormat.EAN_13,
               window.ZXing.BarcodeFormat.EAN_8,
               window.ZXing.BarcodeFormat.UPC_A,
               window.ZXing.BarcodeFormat.UPC_E,
               window.ZXing.BarcodeFormat.CODE_128,
-            ];
-            hints.set(window.ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
-            const reader = new window.ZXing.BrowserMultiFormatReader(hints);
+            ]);
+            hints.set(window.ZXing.DecodeHintType.TRY_HARDER, true);
+            const reader = new window.ZXing.BrowserMultiFormatReader(hints, 500);
             zxingReaderRef.current = reader;
-            const devices = await window.ZXing.BrowserCodeReader.listVideoInputDevices();
-            // 背面カメラを優先
-            const deviceId = devices.find(d => /back|rear|environment/i.test(d.label))?.deviceId
-                           || devices[devices.length - 1]?.deviceId;
-            reader.decodeFromVideoDevice(deviceId, videoRef.current, async (result, err) => {
-              if (result) {
-                reader.reset();
-                zxingReaderRef.current = null;
-                await lookupBarcode(result.getText());
-              }
-            });
+            // すでに取得したstreamをvideoに渡してデコード
+            const scan = () => {
+              if (!videoRef.current || !streamRef.current) return;
+              reader.decodeFromVideoElement(videoRef.current).then(async result => {
+                if (result) {
+                  stopCamera();
+                  await lookupBarcode(result.getText());
+                }
+              }).catch(() => {
+                // 未検出は無視して繰り返す
+                if (streamRef.current) setTimeout(scan, 300);
+              });
+            };
+            scan();
           } else if ('BarcodeDetector' in window) {
-            // BarcodeDetector fallback（Chrome等）
-            const stream = await navigator.mediaDevices.getUserMedia({
-              video: { facingMode: 'environment' }
-            });
-            streamRef.current = stream;
-            if (videoRef.current) { videoRef.current.srcObject = stream; videoRef.current.play(); }
             const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128'] });
             const scan = async () => {
               if (!videoRef.current || !streamRef.current) return;
@@ -666,9 +675,9 @@
               } catch(e) {}
               if (streamRef.current) requestAnimationFrame(scan);
             };
-            videoRef.current.addEventListener('playing', () => requestAnimationFrame(scan), { once: true });
+            requestAnimationFrame(scan);
           } else {
-            alert(language === 'ja' ? 'お使いのブラウザはスキャン非対応です。Chrome または Safari 17以降をお試しください。' : 'Your browser does not support scanning. Please use Chrome or Safari 17+.');
+            alert(language === 'ja' ? 'スキャン非対応のブラウザです。Safari または Chrome をお試しください。' : 'Scanning not supported. Try Safari or Chrome.');
             closeScanner();
           }
         } catch(e) {

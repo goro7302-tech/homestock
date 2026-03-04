@@ -429,6 +429,7 @@
       const [loading, setLoading] = useState(true);
       const [showScanner, setShowScanner] = useState(false);
       const [scanStatus, setScanStatus] = useState('');
+      const [showAddMenu, setShowAddMenu] = useState(false);
       const videoRef = React.useRef(null);
       const streamRef = React.useRef(null);
 
@@ -571,6 +572,12 @@
         }
       };
       const closeScanner = () => { stopCamera(); setShowScanner(false); setScanStatus(''); };
+      React.useEffect(() => {
+        if (!showAddMenu) return;
+        const handler = () => setShowAddMenu(false);
+        setTimeout(() => document.addEventListener('click', handler), 0);
+        return () => document.removeEventListener('click', handler);
+      }, [showAddMenu]);
 
       const lookupBarcode = async (barcode) => {
         setScanStatus('lookingUp');
@@ -733,38 +740,51 @@
                   )}
                 </button>
 
-                <button
-                  onClick={() => items.length >= MAX_FREE_ITEMS ? setShowUpgradeModal(true) : setShowAddForm(true)}
-                  style={{
-                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                    color: 'white', border: 'none', borderRadius: '10px',
-                    padding: '0.5rem 1rem', cursor: 'pointer', display: 'flex', alignItems: 'center',
-                    gap: '0.5rem', fontWeight: '600', fontSize: '0.9rem',
-                    boxShadow: '0 4px 12px rgba(16,185,129,0.3)'
-                  }}
-                >
-                  <Plus size={20} />{t.add}
-                </button>
+                <div style={{ position: 'relative' }}>
+                  <button
+                    onClick={() => items.length >= MAX_FREE_ITEMS ? setShowUpgradeModal(true) : setShowAddMenu(v => !v)}
+                    style={{
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      color: 'white', border: 'none', borderRadius: '10px',
+                      padding: '0.5rem 1rem', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                      gap: '0.5rem', fontWeight: '600', fontSize: '0.9rem',
+                      boxShadow: '0 4px 12px rgba(16,185,129,0.3)'
+                    }}
+                  >
+                    <Plus size={20} />{t.add}
+                  </button>
+                  {showAddMenu && (
+                    <div style={{
+                      position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+                      background: 'white', borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+                      border: '1px solid #e5e7eb', overflow: 'hidden', zIndex: 200, minWidth: '180px'
+                    }}>
+                      <button onClick={() => { setShowAddMenu(false); setShowAddForm(true); }} style={{
+                        width: '100%', padding: '0.875rem 1rem', background: 'none', border: 'none',
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.75rem',
+                        fontSize: '0.9rem', fontWeight: '600', color: '#111827', fontFamily: 'inherit',
+                        borderBottom: '1px solid #f3f4f6'
+                      }}>
+                        <Plus size={18} color="#10b981" />
+                        {language === 'ja' ? '手動で追加' : 'Add Manually'}
+                      </button>
+                      <button onClick={() => { setShowAddMenu(false); startScanner(); }} style={{
+                        width: '100%', padding: '0.875rem 1rem', background: 'none', border: 'none',
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.75rem',
+                        fontSize: '0.9rem', fontWeight: '600', color: '#111827', fontFamily: 'inherit'
+                      }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/>
+                          <rect x="3" y="16" width="5" height="5"/>
+                          <line x1="9" y1="5" x2="15" y2="5"/><line x1="21" y1="9" x2="21" y2="15"/>
+                          <line x1="9" y1="20" x2="21" y2="20"/>
+                        </svg>
+                        {t.scanBarcode}
+                      </button>
+                    </div>
+                  )}
+                </div>
 
-                <button
-                  onClick={startScanner}
-                  title={t.scanBarcode}
-                  style={{
-                    background: 'white', border: '1px solid #e5e7eb', borderRadius: '10px',
-                    padding: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/>
-                    <rect x="3" y="16" width="5" height="5"/>
-                    <line x1="9" y1="4" x2="11" y2="4"/><line x1="9" y1="6" x2="11" y2="6"/>
-                    <line x1="9" y1="19" x2="21" y2="19"/><line x1="9" y1="21" x2="21" y2="21"/>
-                    <line x1="13" y1="4" x2="13" y2="8"/><line x1="15" y1="8" x2="21" y2="8"/>
-                    <line x1="13" y1="12" x2="13" y2="16"/><line x1="13" y1="10" x2="15" y2="10"/>
-                    <line x1="17" y1="10" x2="21" y2="10"/><line x1="21" y1="12" x2="21" y2="17"/>
-                  </svg>
-                </button>
 
                 <button onClick={handleLogout} title={t.logout} style={{
                   background: 'white', border: '1px solid #e5e7eb', borderRadius: '10px',

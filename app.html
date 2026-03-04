@@ -45,6 +45,10 @@
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    @keyframes scanLine {
+      0%, 100% { transform: translateY(-40px); opacity: 0.3; }
+      50% { transform: translateY(40px); opacity: 1; }
+    }
     .fade-in { animation: fadeIn 0.3s ease-out; }
   </style>
 </head>
@@ -162,7 +166,7 @@
         cancel: 'Cancel', addButton: 'Add Item', deleteConfirm: 'Delete this item?',
         scanBarcode: 'Scan Barcode', scanning: 'Scanning...',
         scanSuccess: 'Product found!', scanError: 'Could not read barcode. Please enter manually.',
-        scanPermissionError: 'Please allow camera access.', lookingUp: 'Looking up product...',, upgradePrompt: 'Upgrade to add more',
+        scanPermissionError: 'Please allow camera access.', lookingUp: 'Looking up product...', upgradePrompt: 'Upgrade to add more',
         freePlan: 'Free', premiumPlan: 'Premium', proPlan: 'Pro',
         perMonth: '/mo', perYear: '/yr', comingSoon: 'Coming Soon',
         upgrade: 'Upgrade', exportData: 'Export Data',
@@ -1043,8 +1047,8 @@
             <div style={{ position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.92)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', zIndex:400, padding:'1rem' }}>
               <div style={{ width:'100%', maxWidth:'400px', textAlign:'center' }}>
                 <h2 style={{ color:'white', fontSize:'1.2rem', fontWeight:'700', marginBottom:'1rem' }}>{t.scanBarcode}</h2>
-                <div style={{ position:'relative', borderRadius:'16px', overflow:'hidden', background:'#000', aspectRatio:'4/3', marginBottom:'1.5rem' }}>
-                  <video ref={videoRef} style={{ width:'100%', height:'100%', objectFit:'cover' }} playsInline muted />
+                <div style={{ position:'relative', borderRadius:'16px', overflow:'hidden', background:'#000', paddingBottom:'75%', position:'relative', marginBottom:'1.5rem' }}>
+                  <video ref={videoRef} style={{ position:'absolute', top:0, left:0, width:'100%', height:'100%', objectFit:'cover' }} playsInline muted />
                   <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', pointerEvents:'none' }}>
                     <div style={{ width:'220px', height:'120px', position:'relative' }}>
                       {[{top:0,left:0,borderTop:'3px solid #10b981',borderLeft:'3px solid #10b981'},{top:0,right:0,borderTop:'3px solid #10b981',borderRight:'3px solid #10b981'},{bottom:0,left:0,borderBottom:'3px solid #10b981',borderLeft:'3px solid #10b981'},{bottom:0,right:0,borderBottom:'3px solid #10b981',borderRight:'3px solid #10b981'}].map((s,i)=>(
@@ -1053,7 +1057,6 @@
                       <div style={{ position:'absolute', left:0, right:0, height:'2px', background:'linear-gradient(90deg,transparent,#10b981,transparent)', animation:'scanLine 1.5s ease-in-out infinite', top:'50%' }} />
                     </div>
                   </div>
-                  <style>{`@keyframes scanLine{0%,100%{transform:translateY(-40px);opacity:0.3;}50%{transform:translateY(40px);opacity:1;}}`}</style>
                 </div>
                 <div style={{ marginBottom:'1.5rem', minHeight:'2rem' }}>
                   {scanStatus==='scanning' && <p style={{color:'#d1fae5',fontSize:'0.95rem'}}>📷 {t.scanning}</p>}

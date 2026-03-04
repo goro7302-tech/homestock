@@ -117,6 +117,9 @@
         notes: 'メモ', notesPlaceholder: '自由にメモを記入',
         cancel: 'キャンセル', addButton: '追加する',
         deleteConfirm: 'このアイテムを削除しますか?',
+        scanBarcode: 'バーコードをスキャン', scanning: 'スキャン中...',
+        scanSuccess: '商品が見つかりました！', scanError: 'バーコードを認識できませんでした。手動で入力してください。',
+        scanPermissionError: 'カメラへのアクセスを許可してください。', lookingUp: '商品情報を検索中...',
         itemsRemaining: '残り{count}個登録可能',
         upgradePrompt: 'もっと登録するにはプレミアムへ',
         freePlan: '無料プラン', premiumPlan: 'プレミアム', proPlan: 'プロ',
@@ -157,7 +160,9 @@
         location: 'Location', store: 'Store', storePlaceholder: 'e.g., Costco',
         notes: 'Notes', notesPlaceholder: 'Add notes here',
         cancel: 'Cancel', addButton: 'Add Item', deleteConfirm: 'Delete this item?',
-        itemsRemaining: '{count} items remaining', upgradePrompt: 'Upgrade to add more',
+        scanBarcode: 'Scan Barcode', scanning: 'Scanning...',
+        scanSuccess: 'Product found!', scanError: 'Could not read barcode. Please enter manually.',
+        scanPermissionError: 'Please allow camera access.', lookingUp: 'Looking up product...',, upgradePrompt: 'Upgrade to add more',
         freePlan: 'Free', premiumPlan: 'Premium', proPlan: 'Pro',
         perMonth: '/mo', perYear: '/yr', comingSoon: 'Coming Soon',
         upgrade: 'Upgrade', exportData: 'Export Data',
@@ -418,6 +423,10 @@
       const [showInstallPrompt, setShowInstallPrompt] = useState(false);
       const [deferredPrompt, setDeferredPrompt] = useState(null);
       const [loading, setLoading] = useState(true);
+      const [showScanner, setShowScanner] = useState(false);
+      const [scanStatus, setScanStatus] = useState('');
+      const videoRef = React.useRef(null);
+      const streamRef = React.useRef(null);
 
       const t = translations[language];
       const MAX_FREE_ITEMS = 30;
@@ -550,6 +559,68 @@
         }
       };
 
+      // ===== バーコードスキャン =====
+      const stopCamera = () => {
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(t => t.stop());
+          streamRef.current = null;
+        }
+      };
+      const closeScanner = () => { stopCamera(); setShowScanner(false); setScanStatus(''); };
+
+      const lookupBarcode = async (barcode) => {
+        setScanStatus('lookingUp');
+        try {
+          const res = await fetch('https://world.openfoodfacts.org/api/v0/product/' + barcode + '.json');
+          const data = await res.json();
+          if (data.status === 1 && data.product) {
+            const p = data.product;
+            const name = p.product_name_ja || p.product_name || p.generic_name || '';
+            if (name) {
+              setFormData(prev => ({ ...prev, name, category: 'food' }));
+              setScanStatus('success');
+              setTimeout(() => { closeScanner(); setShowAddForm(true); }, 900);
+              return;
+            }
+          }
+        } catch(e) {}
+        setFormData(prev => ({ ...prev, name: barcode }));
+        setScanStatus('error');
+        setTimeout(() => { closeScanner(); setShowAddForm(true); }, 1200);
+      };
+
+      const startScanner = async () => {
+        if (items.length >= MAX_FREE_ITEMS) { setShowUpgradeModal(true); return; }
+        setShowScanner(true);
+        setScanStatus('scanning');
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+          });
+          streamRef.current = stream;
+          setTimeout(() => {
+            if (videoRef.current) { videoRef.current.srcObject = stream; videoRef.current.play(); }
+          }, 150);
+          if ('BarcodeDetector' in window) {
+            const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','qr_code'] });
+            const scan = async () => {
+              if (!videoRef.current || !streamRef.current) return;
+              try {
+                const codes = await detector.detect(videoRef.current);
+                if (codes.length > 0) { stopCamera(); await lookupBarcode(codes[0].rawValue); return; }
+              } catch(e) {}
+              if (streamRef.current) requestAnimationFrame(scan);
+            };
+            if (videoRef.current) {
+              videoRef.current.addEventListener('playing', () => requestAnimationFrame(scan), { once: true });
+            }
+          }
+        } catch(e) {
+          closeScanner();
+          alert(t.scanPermissionError);
+        }
+      };
+
       // Stripe決済 - Payment Links方式
       const handleStripeCheckout = (plan) => {
         const paymentLinks = {
@@ -669,6 +740,26 @@
                   }}
                 >
                   <Plus size={20} />{t.add}
+                </button>
+
+                <button
+                  onClick={startScanner}
+                  title={t.scanBarcode}
+                  style={{
+                    background: 'white', border: '1px solid #e5e7eb', borderRadius: '10px',
+                    padding: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/>
+                    <rect x="3" y="16" width="5" height="5"/>
+                    <line x1="9" y1="4" x2="11" y2="4"/><line x1="9" y1="6" x2="11" y2="6"/>
+                    <line x1="9" y1="19" x2="21" y2="19"/><line x1="9" y1="21" x2="21" y2="21"/>
+                    <line x1="13" y1="4" x2="13" y2="8"/><line x1="15" y1="8" x2="21" y2="8"/>
+                    <line x1="13" y1="12" x2="13" y2="16"/><line x1="13" y1="10" x2="15" y2="10"/>
+                    <line x1="17" y1="10" x2="21" y2="10"/><line x1="21" y1="12" x2="21" y2="17"/>
+                  </svg>
                 </button>
 
                 <button onClick={handleLogout} title={t.logout} style={{
@@ -945,6 +1036,35 @@
               )}
             </>}
           </main>
+
+
+          {/* Barcode Scanner Modal */}
+          {showScanner && (
+            <div style={{ position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.92)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', zIndex:400, padding:'1rem' }}>
+              <div style={{ width:'100%', maxWidth:'400px', textAlign:'center' }}>
+                <h2 style={{ color:'white', fontSize:'1.2rem', fontWeight:'700', marginBottom:'1rem' }}>{t.scanBarcode}</h2>
+                <div style={{ position:'relative', borderRadius:'16px', overflow:'hidden', background:'#000', aspectRatio:'4/3', marginBottom:'1.5rem' }}>
+                  <video ref={videoRef} style={{ width:'100%', height:'100%', objectFit:'cover' }} playsInline muted />
+                  <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', pointerEvents:'none' }}>
+                    <div style={{ width:'220px', height:'120px', position:'relative' }}>
+                      {[{top:0,left:0,borderTop:'3px solid #10b981',borderLeft:'3px solid #10b981'},{top:0,right:0,borderTop:'3px solid #10b981',borderRight:'3px solid #10b981'},{bottom:0,left:0,borderBottom:'3px solid #10b981',borderLeft:'3px solid #10b981'},{bottom:0,right:0,borderBottom:'3px solid #10b981',borderRight:'3px solid #10b981'}].map((s,i)=>(
+                        <div key={i} style={{ position:'absolute', width:'24px', height:'24px', ...s }} />
+                      ))}
+                      <div style={{ position:'absolute', left:0, right:0, height:'2px', background:'linear-gradient(90deg,transparent,#10b981,transparent)', animation:'scanLine 1.5s ease-in-out infinite', top:'50%' }} />
+                    </div>
+                  </div>
+                  <style>{`@keyframes scanLine{0%,100%{transform:translateY(-40px);opacity:0.3;}50%{transform:translateY(40px);opacity:1;}}`}</style>
+                </div>
+                <div style={{ marginBottom:'1.5rem', minHeight:'2rem' }}>
+                  {scanStatus==='scanning' && <p style={{color:'#d1fae5',fontSize:'0.95rem'}}>📷 {t.scanning}</p>}
+                  {scanStatus==='lookingUp' && <p style={{color:'#fef3c7',fontSize:'0.95rem'}}>🔍 {t.lookingUp}</p>}
+                  {scanStatus==='success' && <p style={{color:'#10b981',fontSize:'0.95rem',fontWeight:'700'}}>✅ {t.scanSuccess}</p>}
+                  {scanStatus==='error' && <p style={{color:'#fca5a5',fontSize:'0.9rem'}}>⚠️ {t.scanError}</p>}
+                </div>
+                <button onClick={closeScanner} style={{ background:'rgba(255,255,255,0.15)', color:'white', border:'1px solid rgba(255,255,255,0.3)', borderRadius:'12px', padding:'0.75rem 2rem', fontSize:'1rem', fontWeight:'600', cursor:'pointer', fontFamily:'inherit' }}>{t.cancel}</button>
+              </div>
+            </div>
+          )}
 
           {/* Add Form Modal */}
           {showAddForm && (

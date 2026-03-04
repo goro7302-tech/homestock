@@ -24,7 +24,7 @@
   <script src="https://js.stripe.com/v3/"></script>
 
   <!-- Firebase SDK -->
-  <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -567,10 +567,7 @@
 
       // ===== バーコードスキャン =====
       const stopCamera = () => {
-        if (zxingReaderRef && zxingReaderRef.current) {
-          try { zxingReaderRef.current.reset(); } catch(e) {}
-          zxingReaderRef.current = null;
-        }
+        try { if (window.Quagga) Quagga.stop(); } catch(e) {}
         if (streamRef.current) {
           streamRef.current.getTracks().forEach(track => track.stop());
           streamRef.current = null;
@@ -619,72 +616,84 @@
         }
       };
 
-      const zxingReaderRef = React.useRef(null);
-
       const startScanner = async () => {
         if (items.length >= MAX_FREE_ITEMS) { setShowUpgradeModal(true); return; }
         setShowScanner(true);
         setScanStatus('scanning');
         try {
-          // 先にカメラ権限を取得（iOS Safari対応）
+          // まずカメラ権限を要求
           const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+            video: { facingMode: { ideal: 'environment' } }
           });
           streamRef.current = stream;
-          // videoにセット
-          await new Promise(resolve => {
-            if (!videoRef.current) { resolve(); return; }
+          if (videoRef.current) {
             videoRef.current.srcObject = stream;
-            videoRef.current.onloadedmetadata = () => { videoRef.current.play(); resolve(); };
-          });
-
-          if (window.ZXing) {
-            // ZXing-jsを使用（iOS Safari対応）
-            const hints = new Map();
-            hints.set(window.ZXing.DecodeHintType.POSSIBLE_FORMATS, [
-              window.ZXing.BarcodeFormat.EAN_13,
-              window.ZXing.BarcodeFormat.EAN_8,
-              window.ZXing.BarcodeFormat.UPC_A,
-              window.ZXing.BarcodeFormat.UPC_E,
-              window.ZXing.BarcodeFormat.CODE_128,
-            ]);
-            hints.set(window.ZXing.DecodeHintType.TRY_HARDER, true);
-            const reader = new window.ZXing.BrowserMultiFormatReader(hints, 500);
-            zxingReaderRef.current = reader;
-            // すでに取得したstreamをvideoに渡してデコード
-            const scan = () => {
-              if (!videoRef.current || !streamRef.current) return;
-              reader.decodeFromVideoElement(videoRef.current).then(async result => {
-                if (result) {
-                  stopCamera();
-                  await lookupBarcode(result.getText());
-                }
-              }).catch(() => {
-                // 未検出は無視して繰り返す
-                if (streamRef.current) setTimeout(scan, 300);
-              });
-            };
-            scan();
-          } else if ('BarcodeDetector' in window) {
-            const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128'] });
-            const scan = async () => {
-              if (!videoRef.current || !streamRef.current) return;
-              try {
-                const codes = await detector.detect(videoRef.current);
-                if (codes.length > 0) { stopCamera(); await lookupBarcode(codes[0].rawValue); return; }
-              } catch(e) {}
-              if (streamRef.current) requestAnimationFrame(scan);
-            };
-            requestAnimationFrame(scan);
+            await videoRef.current.play();
+          }
+          // Quagga.jsでバーコード検出
+          if (window.Quagga) {
+            Quagga.init({
+              inputStream: {
+                name: 'Live',
+                type: 'LiveStream',
+                target: videoRef.current,
+                constraints: { facingMode: 'environment' }
+              },
+              decoder: {
+                readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader', 'code_128_reader']
+              },
+              locate: true
+            }, err => {
+              if (err) {
+                // Quagga失敗 → canvasフォールバック
+                startCanvasScan();
+                return;
+              }
+              Quagga.start();
+            });
+            Quagga.onDetected(async result => {
+              const code = result.codeResult.code;
+              if (code) {
+                Quagga.stop();
+                stopCamera();
+                await lookupBarcode(code);
+              }
+            });
           } else {
-            alert(language === 'ja' ? 'スキャン非対応のブラウザです。Safari または Chrome をお試しください。' : 'Scanning not supported. Try Safari or Chrome.');
-            closeScanner();
+            // canvas方式フォールバック
+            startCanvasScan();
           }
         } catch(e) {
           closeScanner();
           alert(t.scanPermissionError);
         }
       };
+
+      const startCanvasScan = () => {
+        // BarcodeDetector（Chrome/Safari 17+）でcanvasから検出
+        if ('BarcodeDetector' in window) {
+          const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128'] });
+          const scan = async () => {
+            if (!videoRef.current || !streamRef.current) return;
+            try {
+              const codes = await detector.detect(videoRef.current);
+              if (codes.length > 0) {
+                stopCamera();
+                await lookupBarcode(codes[0].rawValue);
+                return;
+              }
+            } catch(e) {}
+            if (streamRef.current) setTimeout(scan, 200);
+          };
+          setTimeout(scan, 500);
+        } else {
+          alert(language === 'ja'
+            ? 'お使いのブラウザはバーコードスキャンに対応していません。Safari または Chrome の最新版をお試しください。'
+            : 'Your browser does not support barcode scanning. Please use the latest Safari or Chrome.');
+          closeScanner();
+        }
+      };
+
 
       // Stripe決済 - Payment Links方式
       const handleStripeCheckout = (plan) => {

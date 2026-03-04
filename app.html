@@ -24,6 +24,7 @@
   <script src="https://js.stripe.com/v3/"></script>
 
   <!-- Firebase SDK -->
+  <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -566,6 +567,10 @@
 
       // ===== バーコードスキャン =====
       const stopCamera = () => {
+        if (zxingReaderRef && zxingReaderRef.current) {
+          try { zxingReaderRef.current.reset(); } catch(e) {}
+          zxingReaderRef.current = null;
+        }
         if (streamRef.current) {
           streamRef.current.getTracks().forEach(track => track.stop());
           streamRef.current = null;
@@ -581,39 +586,78 @@
 
       const lookupBarcode = async (barcode) => {
         setScanStatus('lookingUp');
+        let productName = '';
+        // 1. Open Food Facts（日本DB）
         try {
-          const res = await fetch('https://world.openfoodfacts.org/api/v0/product/' + barcode + '.json');
-          const data = await res.json();
-          if (data.status === 1 && data.product) {
-            const p = data.product;
-            const name = p.product_name_ja || p.product_name || p.generic_name || '';
-            if (name) {
-              setFormData(prev => ({ ...prev, name, category: 'food' }));
-              setScanStatus('success');
-              setTimeout(() => { closeScanner(); setShowAddForm(true); }, 900);
-              return;
-            }
+          const r1 = await fetch('https://jp.openfoodfacts.org/api/v0/product/' + barcode + '.json');
+          const d1 = await r1.json();
+          if (d1.status === 1 && d1.product) {
+            const p = d1.product;
+            productName = p.product_name_ja || p.product_name || p.generic_name || '';
           }
         } catch(e) {}
-        setFormData(prev => ({ ...prev, name: barcode }));
-        setScanStatus('error');
-        setTimeout(() => { closeScanner(); setShowAddForm(true); }, 1200);
+        // 2. World Open Food Facts（fallback）
+        if (!productName) {
+          try {
+            const r2 = await fetch('https://world.openfoodfacts.org/api/v0/product/' + barcode + '.json');
+            const d2 = await r2.json();
+            if (d2.status === 1 && d2.product) {
+              const p = d2.product;
+              productName = p.product_name_ja || p.product_name || p.generic_name || '';
+            }
+          } catch(e) {}
+        }
+        if (productName) {
+          setFormData(prev => ({ ...prev, name: productName, category: 'food' }));
+          setScanStatus('success');
+          setTimeout(() => { closeScanner(); setShowAddForm(true); }, 900);
+        } else {
+          // 商品名不明でもバーコード番号をセットしてフォームを開く
+          setFormData(prev => ({ ...prev, name: '' }));
+          setScanStatus('error');
+          setTimeout(() => { closeScanner(); setShowAddForm(true); }, 1200);
+        }
       };
+
+      const zxingReaderRef = React.useRef(null);
 
       const startScanner = async () => {
         if (items.length >= MAX_FREE_ITEMS) { setShowUpgradeModal(true); return; }
         setShowScanner(true);
         setScanStatus('scanning');
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-          });
-          streamRef.current = stream;
-          setTimeout(() => {
+          // ZXing-js（iOS Safari含む全ブラウザ対応）
+          if (window.ZXing) {
+            const hints = new Map();
+            const formats = [
+              window.ZXing.BarcodeFormat.EAN_13,
+              window.ZXing.BarcodeFormat.EAN_8,
+              window.ZXing.BarcodeFormat.UPC_A,
+              window.ZXing.BarcodeFormat.UPC_E,
+              window.ZXing.BarcodeFormat.CODE_128,
+            ];
+            hints.set(window.ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
+            const reader = new window.ZXing.BrowserMultiFormatReader(hints);
+            zxingReaderRef.current = reader;
+            const devices = await window.ZXing.BrowserCodeReader.listVideoInputDevices();
+            // 背面カメラを優先
+            const deviceId = devices.find(d => /back|rear|environment/i.test(d.label))?.deviceId
+                           || devices[devices.length - 1]?.deviceId;
+            reader.decodeFromVideoDevice(deviceId, videoRef.current, async (result, err) => {
+              if (result) {
+                reader.reset();
+                zxingReaderRef.current = null;
+                await lookupBarcode(result.getText());
+              }
+            });
+          } else if ('BarcodeDetector' in window) {
+            // BarcodeDetector fallback（Chrome等）
+            const stream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: 'environment' }
+            });
+            streamRef.current = stream;
             if (videoRef.current) { videoRef.current.srcObject = stream; videoRef.current.play(); }
-          }, 150);
-          if ('BarcodeDetector' in window) {
-            const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','qr_code'] });
+            const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128'] });
             const scan = async () => {
               if (!videoRef.current || !streamRef.current) return;
               try {
@@ -622,9 +666,10 @@
               } catch(e) {}
               if (streamRef.current) requestAnimationFrame(scan);
             };
-            if (videoRef.current) {
-              videoRef.current.addEventListener('playing', () => requestAnimationFrame(scan), { once: true });
-            }
+            videoRef.current.addEventListener('playing', () => requestAnimationFrame(scan), { once: true });
+          } else {
+            alert(language === 'ja' ? 'お使いのブラウザはスキャン非対応です。Chrome または Safari 17以降をお試しください。' : 'Your browser does not support scanning. Please use Chrome or Safari 17+.');
+            closeScanner();
           }
         } catch(e) {
           closeScanner();

@@ -465,30 +465,34 @@
 
       // URLパラメーターをsessionStorageに保存（ログイン前に消えないよう）
       useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('upgrade') === '1') {
-          sessionStorage.setItem('pendingUpgrade', '1');
-          window.history.replaceState({}, '', window.location.pathname);
-        }
-        if (params.get('payment') === 'success') {
-          sessionStorage.setItem('paymentSuccess', '1');
-          window.history.replaceState({}, '', window.location.pathname);
-        } else if (params.get('payment') === 'cancel') {
-          window.history.replaceState({}, '', window.location.pathname);
-        }
+        try {
+          const params = new URLSearchParams(window.location.search);
+          if (params.get('upgrade') === '1') {
+            sessionStorage.setItem('pendingUpgrade', '1');
+            window.history.replaceState({}, '', window.location.pathname);
+          }
+          if (params.get('payment') === 'success') {
+            sessionStorage.setItem('paymentSuccess', '1');
+            window.history.replaceState({}, '', window.location.pathname);
+          } else if (params.get('payment') === 'cancel') {
+            window.history.replaceState({}, '', window.location.pathname);
+          }
+        } catch(e) { console.log('URL param error:', e.message); }
       }, []);
 
       // ログイン完了後にsessionStorageをチェックしてモーダルを開く
       useEffect(() => {
         if (!user) return;
-        if (sessionStorage.getItem('pendingUpgrade') === '1') {
-          sessionStorage.removeItem('pendingUpgrade');
-          setShowUpgradeModal(true);
-        }
-        if (sessionStorage.getItem('paymentSuccess') === '1') {
-          sessionStorage.removeItem('paymentSuccess');
-          alert(language === 'ja' ? '🎉 アップグレード完了！ありがとうございます。' : '🎉 Upgrade complete! Thank you.');
-        }
+        try {
+          if (sessionStorage.getItem('pendingUpgrade') === '1') {
+            sessionStorage.removeItem('pendingUpgrade');
+            setShowUpgradeModal(true);
+          }
+          if (sessionStorage.getItem('paymentSuccess') === '1') {
+            sessionStorage.removeItem('paymentSuccess');
+            alert(language === 'ja' ? '🎉 アップグレード完了！ありがとうございます。' : '🎉 Upgrade complete! Thank you.');
+          }
+        } catch(e) { console.log('Session storage error:', e.message); }
       }, [user]);
 
       // Load items from Firestore
@@ -609,14 +613,20 @@
       // ログイン後に通知許可を促す
       React.useEffect(() => {
         if (!user) return;
+        if (!messaging) return;
         if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
-        if (Notification.permission === 'default') {
-          // 初回ログイン後3秒後に許可を促す
-          setTimeout(() => registerPushNotification(), 3000);
-        } else if (Notification.permission === 'granted') {
-          // 既に許可済みならトークンを更新
-          registerPushNotification();
-        }
+        const setup = async () => {
+          try {
+            if (Notification.permission === 'default') {
+              setTimeout(() => registerPushNotification(), 3000);
+            } else if (Notification.permission === 'granted') {
+              await registerPushNotification();
+            }
+          } catch(e) {
+            console.log('Push setup error:', e.message);
+          }
+        };
+        setup();
       }, [user]);
 
       const closeScanner = () => { stopCamera(); setShowScanner(false); setScanStatus(''); };

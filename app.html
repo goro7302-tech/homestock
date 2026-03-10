@@ -583,6 +583,7 @@
       const VAPID_KEY = 'BD3vmT0Jiwk7Hzn81g2Ql6JhgMoGE3V43utfvYkksgyqaEWeOzX2HndL9LEjxhXo1FsKFMMZJHwAxbp2CGmMUZA';
 
       const registerPushNotification = async () => {
+        if (!messaging) return; // FCM非対応環境はスキップ
         try {
           // Service Worker登録
           const sw = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
@@ -1542,7 +1543,9 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    const messaging = firebase.messaging();
+    // FCM messaging - iOS Safariでは失敗することがあるのでtry-catch
+    let messaging = null;
+    try { messaging = firebase.messaging(); } catch(e) { console.log('FCM not supported:', e.message); }
     db.enablePersistence().catch(err => console.log('Persistence:', err.code));
   </script>
 </body>

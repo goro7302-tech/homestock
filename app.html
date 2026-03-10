@@ -30,7 +30,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
 
   <style>
     * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -434,7 +433,7 @@
       const [showScanner, setShowScanner] = useState(false);
       const [scanStatus, setScanStatus] = useState('');
       const [showAddMenu, setShowAddMenu] = useState(false);
-      const [notifPermission, setNotifPermission] = useState(Notification?.permission || 'default');
+
       const videoRef = React.useRef(null);
       const streamRef = React.useRef(null);
 
@@ -465,34 +464,30 @@
 
       // URLパラメーターをsessionStorageに保存（ログイン前に消えないよう）
       useEffect(() => {
-        try {
-          const params = new URLSearchParams(window.location.search);
-          if (params.get('upgrade') === '1') {
-            sessionStorage.setItem('pendingUpgrade', '1');
-            window.history.replaceState({}, '', window.location.pathname);
-          }
-          if (params.get('payment') === 'success') {
-            sessionStorage.setItem('paymentSuccess', '1');
-            window.history.replaceState({}, '', window.location.pathname);
-          } else if (params.get('payment') === 'cancel') {
-            window.history.replaceState({}, '', window.location.pathname);
-          }
-        } catch(e) { console.log('URL param error:', e.message); }
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('upgrade') === '1') {
+          sessionStorage.setItem('pendingUpgrade', '1');
+          window.history.replaceState({}, '', window.location.pathname);
+        }
+        if (params.get('payment') === 'success') {
+          sessionStorage.setItem('paymentSuccess', '1');
+          window.history.replaceState({}, '', window.location.pathname);
+        } else if (params.get('payment') === 'cancel') {
+          window.history.replaceState({}, '', window.location.pathname);
+        }
       }, []);
 
       // ログイン完了後にsessionStorageをチェックしてモーダルを開く
       useEffect(() => {
         if (!user) return;
-        try {
-          if (sessionStorage.getItem('pendingUpgrade') === '1') {
-            sessionStorage.removeItem('pendingUpgrade');
-            setShowUpgradeModal(true);
-          }
-          if (sessionStorage.getItem('paymentSuccess') === '1') {
-            sessionStorage.removeItem('paymentSuccess');
-            alert(language === 'ja' ? '🎉 アップグレード完了！ありがとうございます。' : '🎉 Upgrade complete! Thank you.');
-          }
-        } catch(e) { console.log('Session storage error:', e.message); }
+        if (sessionStorage.getItem('pendingUpgrade') === '1') {
+          sessionStorage.removeItem('pendingUpgrade');
+          setShowUpgradeModal(true);
+        }
+        if (sessionStorage.getItem('paymentSuccess') === '1') {
+          sessionStorage.removeItem('paymentSuccess');
+          alert(language === 'ja' ? '🎉 アップグレード完了！ありがとうございます。' : '🎉 Upgrade complete! Thank you.');
+        }
       }, [user]);
 
       // Load items from Firestore
@@ -583,52 +578,6 @@
           videoRef.current.srcObject = null;
         }
       };
-      // ===== プッシュ通知 =====
-      const VAPID_KEY = 'BD3vmT0Jiwk7Hzn81g2Ql6JhgMoGE3V43utfvYkksgyqaEWeOzX2HndL9LEjxhXo1FsKFMMZJHwAxbp2CGmMUZA';
-
-      const registerPushNotification = async () => {
-        if (!messaging) return; // FCM非対応環境はスキップ
-        try {
-          // Service Worker登録
-          const sw = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-          // 通知許可を要求
-          const permission = await Notification.requestPermission();
-          setNotifPermission(permission);
-          if (permission !== 'granted') return;
-          // FCMトークン取得
-          const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: sw });
-          if (token) {
-            // Firestoreにトークンを保存
-            await db.collection('users').doc(user.uid).set(
-              { fcmTokens: firebase.firestore.FieldValue.arrayUnion(token), updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
-              { merge: true }
-            );
-            console.log('FCM token saved:', token.slice(0, 20) + '...');
-          }
-        } catch(e) {
-          console.error('Push notification setup failed:', e);
-        }
-      };
-
-      // ログイン後に通知許可を促す
-      React.useEffect(() => {
-        if (!user) return;
-        if (!messaging) return;
-        if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
-        const setup = async () => {
-          try {
-            if (Notification.permission === 'default') {
-              setTimeout(() => registerPushNotification(), 3000);
-            } else if (Notification.permission === 'granted') {
-              await registerPushNotification();
-            }
-          } catch(e) {
-            console.log('Push setup error:', e.message);
-          }
-        };
-        setup();
-      }, [user]);
-
       const closeScanner = () => { stopCamera(); setShowScanner(false); setScanStatus(''); };
       React.useEffect(() => {
         if (!showAddMenu) return;
@@ -1553,9 +1502,6 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    // FCM messaging - iOS Safariでは失敗することがあるのでtry-catch
-    let messaging = null;
-    try { messaging = firebase.messaging(); } catch(e) { console.log('FCM not supported:', e.message); }
     db.enablePersistence().catch(err => console.log('Persistence:', err.code));
   </script>
 </body>

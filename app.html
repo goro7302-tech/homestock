@@ -640,74 +640,42 @@
             };
           });
 
-          // BarcodeDetector が使えるか実際に試す
-          let detectorWorks = false;
-          try {
-            const testDetector = new BarcodeDetector({ formats: ['ean_13'] });
-            detectorWorks = true;
-            setScanStatus('scanning');
-          } catch(e) {
-            setScanStatus('debug:BD_NG ' + e.message.slice(0,20));
-          }
+          const detector = new BarcodeDetector({
+            formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf', 'codabar']
+          });
 
-          if (detectorWorks) {
-            const detector = new BarcodeDetector({
-              formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39']
-            });
-            let scanCount = 0;
-            const scan = async () => {
-              if (!videoRef.current || !streamRef.current) return;
-              scanCount++;
-              try {
-                const codes = await detector.detect(videoRef.current);
-                if (codes.length > 0) {
-                  stopCamera();
-                  await lookupBarcode(codes[0].rawValue);
-                  return;
+          // video直接スキャン + canvas両方試す
+          const scan = async () => {
+            if (!videoRef.current || !streamRef.current) return;
+            try {
+              // 方法1: videoを直接スキャン
+              let codes = await detector.detect(videoRef.current);
+
+              // 方法2: videoが0x0なら（iOSの場合）canvasに描画してスキャン
+              if (codes.length === 0) {
+                const vw = videoRef.current.videoWidth;
+                const vh = videoRef.current.videoHeight;
+                if (vw > 0 && vh > 0) {
+                  const canvas = document.createElement('canvas');
+                  canvas.width = vw;
+                  canvas.height = vh;
+                  canvas.getContext('2d').drawImage(videoRef.current, 0, 0);
+                  const bmp = await createImageBitmap(canvas);
+                  codes = await detector.detect(bmp);
                 }
-                // デバッグ: 5回ごとに映像サイズを表示
-                if (scanCount % 5 === 0) {
-                  const vw = videoRef.current?.videoWidth || 0;
-                  const vh = videoRef.current?.videoHeight || 0;
-                  setScanStatus('debug:' + scanCount + ' ' + vw + 'x' + vh);
-                }
-              } catch(e) {
-                setScanStatus('err:' + e.message.slice(0, 40));
               }
-              if (streamRef.current) setTimeout(scan, 200);
-            };
-            setTimeout(scan, 800);
-          } else {
-            // BarcodeDetector非対応 → canvas + ImageCapture方式
-            let canvasCount = 0;
-            const canvasScan = async () => {
-              if (!videoRef.current || !streamRef.current) return;
-              canvasCount++;
-              if (canvasCount % 5 === 0) {
-                setScanStatus('debug:canvas ' + canvasCount + ' ' + (videoRef.current.videoWidth||0) + 'x' + (videoRef.current.videoHeight||0));
+
+              if (codes.length > 0) {
+                stopCamera();
+                await lookupBarcode(codes[0].rawValue);
+                return;
               }
-              const canvas = document.createElement('canvas');
-              canvas.width = videoRef.current.videoWidth || 640;
-              canvas.height = videoRef.current.videoHeight || 480;
-              const ctx = canvas.getContext('2d');
-              ctx.drawImage(videoRef.current, 0, 0);
-              try {
-                const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg'));
-                const imgBitmap = await createImageBitmap(blob);
-                const detector2 = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128'] });
-                const codes = await detector2.detect(imgBitmap);
-                if (codes.length > 0) {
-                  stopCamera();
-                  await lookupBarcode(codes[0].rawValue);
-                  return;
-                }
-              } catch(e) {
-                setScanStatus('err:canvas ' + e.message.slice(0,30));
-              }
-              if (streamRef.current) setTimeout(canvasScan, 300);
-            };
-            setTimeout(canvasScan, 800);
-          }
+            } catch(e) {}
+            if (streamRef.current) setTimeout(scan, 300);
+          };
+
+          // 映像安定を待ってスキャン開始（iOSはオートフォーカスに時間がかかる）
+          setTimeout(scan, 1500);
 
         } catch(e) {
           closeScanner();
@@ -1167,8 +1135,7 @@
                   {scanStatus==='lookingUp' && <p style={{color:'#fef3c7',fontSize:'0.95rem'}}>🔍 {t.lookingUp}</p>}
                   {scanStatus==='success' && <p style={{color:'#10b981',fontSize:'0.95rem',fontWeight:'700'}}>✅ {t.scanSuccess}</p>}
                   {scanStatus==='error' && <p style={{color:'#fca5a5',fontSize:'0.9rem'}}>⚠️ {t.scanError}</p>}
-                  {scanStatus.startsWith('debug:') && <p style={{color:'#93c5fd',fontSize:'0.8rem'}}>🔍 {scanStatus}</p>}
-                  {scanStatus.startsWith('err:') && <p style={{color:'#fca5a5',fontSize:'0.8rem'}}>❌ {scanStatus}</p>}
+
                 </div>
                 <button onClick={closeScanner} style={{ background:'rgba(255,255,255,0.15)', color:'white', border:'1px solid rgba(255,255,255,0.3)', borderRadius:'12px', padding:'0.75rem 2rem', fontSize:'1rem', fontWeight:'600', cursor:'pointer', fontFamily:'inherit' }}>{t.cancel}</button>
               </div>

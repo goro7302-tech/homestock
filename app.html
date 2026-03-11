@@ -645,7 +645,10 @@
           try {
             const testDetector = new BarcodeDetector({ formats: ['ean_13'] });
             detectorWorks = true;
-          } catch(e) {}
+            setScanStatus('scanning');
+          } catch(e) {
+            setScanStatus('debug:BD_NG ' + e.message.slice(0,20));
+          }
 
           if (detectorWorks) {
             const detector = new BarcodeDetector({
@@ -676,11 +679,16 @@
             setTimeout(scan, 800);
           } else {
             // BarcodeDetector非対応 → canvas + ImageCapture方式
+            let canvasCount = 0;
             const canvasScan = async () => {
               if (!videoRef.current || !streamRef.current) return;
+              canvasCount++;
+              if (canvasCount % 5 === 0) {
+                setScanStatus('debug:canvas ' + canvasCount + ' ' + (videoRef.current.videoWidth||0) + 'x' + (videoRef.current.videoHeight||0));
+              }
               const canvas = document.createElement('canvas');
-              canvas.width = videoRef.current.videoWidth;
-              canvas.height = videoRef.current.videoHeight;
+              canvas.width = videoRef.current.videoWidth || 640;
+              canvas.height = videoRef.current.videoHeight || 480;
               const ctx = canvas.getContext('2d');
               ctx.drawImage(videoRef.current, 0, 0);
               try {
@@ -693,7 +701,9 @@
                   await lookupBarcode(codes[0].rawValue);
                   return;
                 }
-              } catch(e) {}
+              } catch(e) {
+                setScanStatus('err:canvas ' + e.message.slice(0,30));
+              }
               if (streamRef.current) setTimeout(canvasScan, 300);
             };
             setTimeout(canvasScan, 800);

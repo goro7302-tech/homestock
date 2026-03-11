@@ -27,6 +27,8 @@
   <script src="https://js.stripe.com/v3/"></script>
 
   <!-- Firebase SDK -->
+  <!-- ZXing バーコードスキャナー (iOS対応) -->
+  <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -571,7 +573,14 @@
       // ===== バーコードスキャン =====
       const stopCamera = () => {
         if (streamRef.current) {
-          streamRef.current.getTracks().forEach(track => track.stop());
+          if (streamRef.current.zxing) {
+            // ZXing使用時
+            streamRef.current.active = false;
+            streamRef.current.zxing.reset();
+          } else {
+            // MediaStream使用時
+            streamRef.current.getTracks().forEach(track => track.stop());
+          }
           streamRef.current = null;
         }
         if (videoRef.current) {
@@ -627,64 +636,41 @@
         setScanStatus('scanning');
 
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
-          });
-          streamRef.current = stream;
+          // ZXingのMultiFormatReaderを使用（iOS Safari対応）
+          const codeReader = new ZXing.BrowserMultiFormatReader();
+          streamRef.current = { zxing: codeReader, active: true };
 
-          // iOSではvideoRefがまだマウントされていない場合があるので少し待つ
+          // videoRefが準備されるまで待つ
           await new Promise(r => setTimeout(r, 300));
 
-          await new Promise((resolve, reject) => {
-            if (!videoRef.current) { resolve(); return; } // videoRefがなくてもスキャンは試みる
-            videoRef.current.srcObject = stream;
-            videoRef.current.setAttribute('playsinline', 'true');
-            videoRef.current.muted = true;
-            videoRef.current.onloadedmetadata = () => {
-              videoRef.current.play().then(resolve).catch(resolve); // play失敗でも続行
-            };
-            setTimeout(resolve, 2000); // 2秒でタイムアウトしても続行
-          });
+          if (!videoRef.current) {
+            closeScanner();
+            return;
+          }
 
-          const detector = new BarcodeDetector({
-            formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39']
-          });
-
-          // iOS対応: 常にcanvasに描画してからdetect
-          const offscreen = document.createElement('canvas');
-          const ctx = offscreen.getContext('2d');
-
-          const scan = async () => {
-            if (!videoRef.current || !streamRef.current) return;
-            try {
-              const vw = videoRef.current.videoWidth;
-              const vh = videoRef.current.videoHeight;
-              if (vw > 0 && vh > 0) {
-                offscreen.width = vw;
-                offscreen.height = vh;
-                ctx.drawImage(videoRef.current, 0, 0, vw, vh);
-                const imageData = ctx.getImageData(0, 0, vw, vh);
-                const bmp = await createImageBitmap(imageData);
-                const codes = await detector.detect(bmp);
-                if (codes.length > 0) {
-                  stopCamera();
-                  await lookupBarcode(codes[0].rawValue);
-                  return;
-                }
+          await codeReader.decodeFromConstraints(
+            {
+              video: {
+                facingMode: { ideal: 'environment' },
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
               }
-            } catch(e) {}
-            if (streamRef.current) requestAnimationFrame(() => setTimeout(scan, 200));
-          };
-
-          // 映像安定を待ってスキャン開始
-          setTimeout(scan, 1200);
-
+            },
+            videoRef.current,
+            async (result, error) => {
+              if (!streamRef.current?.active) return;
+              if (result) {
+                streamRef.current.active = false;
+                codeReader.reset();
+                await lookupBarcode(result.getText());
+              }
+            }
+          );
         } catch(e) {
           if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
             closeScanner();
             alert(t.scanPermissionError);
           } else {
-            // その他のエラーはカメラを再試行
             console.log('Scanner error:', e.name, e.message);
             setScanStatus('scanning');
           }

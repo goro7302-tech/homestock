@@ -651,8 +651,10 @@
             const detector = new BarcodeDetector({
               formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39']
             });
+            let scanCount = 0;
             const scan = async () => {
               if (!videoRef.current || !streamRef.current) return;
+              scanCount++;
               try {
                 const codes = await detector.detect(videoRef.current);
                 if (codes.length > 0) {
@@ -660,7 +662,15 @@
                   await lookupBarcode(codes[0].rawValue);
                   return;
                 }
-              } catch(e) {}
+                // デバッグ: 5回ごとに映像サイズを表示
+                if (scanCount % 5 === 0) {
+                  const vw = videoRef.current?.videoWidth || 0;
+                  const vh = videoRef.current?.videoHeight || 0;
+                  setScanStatus('debug:' + scanCount + ' ' + vw + 'x' + vh);
+                }
+              } catch(e) {
+                setScanStatus('err:' + e.message.slice(0, 40));
+              }
               if (streamRef.current) setTimeout(scan, 200);
             };
             setTimeout(scan, 800);
@@ -1147,6 +1157,8 @@
                   {scanStatus==='lookingUp' && <p style={{color:'#fef3c7',fontSize:'0.95rem'}}>🔍 {t.lookingUp}</p>}
                   {scanStatus==='success' && <p style={{color:'#10b981',fontSize:'0.95rem',fontWeight:'700'}}>✅ {t.scanSuccess}</p>}
                   {scanStatus==='error' && <p style={{color:'#fca5a5',fontSize:'0.9rem'}}>⚠️ {t.scanError}</p>}
+                  {scanStatus.startsWith('debug:') && <p style={{color:'#93c5fd',fontSize:'0.8rem'}}>🔍 {scanStatus}</p>}
+                  {scanStatus.startsWith('err:') && <p style={{color:'#fca5a5',fontSize:'0.8rem'}}>❌ {scanStatus}</p>}
                 </div>
                 <button onClick={closeScanner} style={{ background:'rgba(255,255,255,0.15)', color:'white', border:'1px solid rgba(255,255,255,0.3)', borderRadius:'12px', padding:'0.75rem 2rem', fontSize:'1rem', fontWeight:'600', cursor:'pointer', fontFamily:'inherit' }}>{t.cancel}</button>
               </div>

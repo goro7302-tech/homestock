@@ -628,16 +628,22 @@
 
         try {
           const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+            video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
           });
           streamRef.current = stream;
 
+          // iOSではvideoRefがまだマウントされていない場合があるので少し待つ
+          await new Promise(r => setTimeout(r, 300));
+
           await new Promise((resolve, reject) => {
-            if (!videoRef.current) { reject(new Error('no video')); return; }
+            if (!videoRef.current) { resolve(); return; } // videoRefがなくてもスキャンは試みる
             videoRef.current.srcObject = stream;
+            videoRef.current.setAttribute('playsinline', 'true');
+            videoRef.current.muted = true;
             videoRef.current.onloadedmetadata = () => {
-              videoRef.current.play().then(resolve).catch(reject);
+              videoRef.current.play().then(resolve).catch(resolve); // play失敗でも続行
             };
+            setTimeout(resolve, 2000); // 2秒でタイムアウトしても続行
           });
 
           const detector = new BarcodeDetector({
@@ -678,8 +684,14 @@
           setTimeout(scan, 1500);
 
         } catch(e) {
-          closeScanner();
-          alert(t.scanPermissionError);
+          if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
+            closeScanner();
+            alert(t.scanPermissionError);
+          } else {
+            // その他のエラーはカメラを再試行
+            console.log('Scanner error:', e.name, e.message);
+            setScanStatus('scanning');
+          }
         }
       };
 

@@ -647,41 +647,37 @@
           });
 
           const detector = new BarcodeDetector({
-            formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf', 'codabar']
+            formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39']
           });
 
-          // video直接スキャン + canvas両方試す
+          // iOS対応: 常にcanvasに描画してからdetect
+          const offscreen = document.createElement('canvas');
+          const ctx = offscreen.getContext('2d');
+
           const scan = async () => {
             if (!videoRef.current || !streamRef.current) return;
             try {
-              // 方法1: videoを直接スキャン
-              let codes = await detector.detect(videoRef.current);
-
-              // 方法2: videoが0x0なら（iOSの場合）canvasに描画してスキャン
-              if (codes.length === 0) {
-                const vw = videoRef.current.videoWidth;
-                const vh = videoRef.current.videoHeight;
-                if (vw > 0 && vh > 0) {
-                  const canvas = document.createElement('canvas');
-                  canvas.width = vw;
-                  canvas.height = vh;
-                  canvas.getContext('2d').drawImage(videoRef.current, 0, 0);
-                  const bmp = await createImageBitmap(canvas);
-                  codes = await detector.detect(bmp);
+              const vw = videoRef.current.videoWidth;
+              const vh = videoRef.current.videoHeight;
+              if (vw > 0 && vh > 0) {
+                offscreen.width = vw;
+                offscreen.height = vh;
+                ctx.drawImage(videoRef.current, 0, 0, vw, vh);
+                const imageData = ctx.getImageData(0, 0, vw, vh);
+                const bmp = await createImageBitmap(imageData);
+                const codes = await detector.detect(bmp);
+                if (codes.length > 0) {
+                  stopCamera();
+                  await lookupBarcode(codes[0].rawValue);
+                  return;
                 }
               }
-
-              if (codes.length > 0) {
-                stopCamera();
-                await lookupBarcode(codes[0].rawValue);
-                return;
-              }
             } catch(e) {}
-            if (streamRef.current) setTimeout(scan, 300);
+            if (streamRef.current) requestAnimationFrame(() => setTimeout(scan, 200));
           };
 
-          // 映像安定を待ってスキャン開始（iOSはオートフォーカスに時間がかかる）
-          setTimeout(scan, 1500);
+          // 映像安定を待ってスキャン開始
+          setTimeout(scan, 1200);
 
         } catch(e) {
           if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {

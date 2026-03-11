@@ -595,19 +595,36 @@
         return () => document.removeEventListener('click', handler);
       }, [showAddMenu]);
 
+      const YAHOO_APP_ID = 'dmVyPTIwMjUwNyZpZD0zQ2xDWVl4bFZoJmhhc2g9TmpKaFpEZ3lNV0ptT0RVM1l6UVEO';
+
       const lookupBarcode = async (barcode) => {
         setScanStatus('lookingUp');
         let productName = '';
-        // 1. Open Food Facts（日本DB）
+
+        // 1. Yahoo!ショッピング商品検索API（日本商品に強い）
         try {
-          const r1 = await fetch('https://jp.openfoodfacts.org/api/v0/product/' + barcode + '.json');
-          const d1 = await r1.json();
-          if (d1.status === 1 && d1.product) {
-            const p = d1.product;
-            productName = p.product_name_ja || p.product_name || p.generic_name || '';
+          const yhUrl = 'https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid=' + YAHOO_APP_ID + '&jan_code=' + barcode + '&results=1&output=json';
+          const yr = await fetch(yhUrl);
+          const yd = await yr.json();
+          const hit = yd?.hits?.[0];
+          if (hit?.name) {
+            productName = hit.name.replace(/\s*[\[【].*?[\]】]\s*/g, '').trim();
           }
         } catch(e) {}
-        // 2. World Open Food Facts（fallback）
+
+        // 2. Open Food Facts（食品DB）
+        if (!productName) {
+          try {
+            const r1 = await fetch('https://jp.openfoodfacts.org/api/v0/product/' + barcode + '.json');
+            const d1 = await r1.json();
+            if (d1.status === 1 && d1.product) {
+              const p = d1.product;
+              productName = p.product_name_ja || p.product_name || p.generic_name || '';
+            }
+          } catch(e) {}
+        }
+
+        // 3. World Open Food Facts（fallback）
         if (!productName) {
           try {
             const r2 = await fetch('https://world.openfoodfacts.org/api/v0/product/' + barcode + '.json');

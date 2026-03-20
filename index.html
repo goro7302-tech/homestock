@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-6XL7T3BJ1Z"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-6XL7T3BJ1Z');
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HomeStock - Smart Home Inventory Management</title>
@@ -308,7 +316,7 @@
         </div>
         <div class="footer-col">
           <h4 id="footer-h3">お問い合わせ</h4>
-          <a href="mailto:goro@high-touch.jp">goro@high-touch.jp</a>
+          <a href="/cdn-cgi/l/email-protection#3c5b534e537c54555b54114853495f5412564c"><span class="__cf_email__" data-cfemail="45222a372a052d2c222d68312a30262d6b2f35">[email&#160;protected]</span></a>
         </div>
       </div>
     </div>
@@ -319,7 +327,7 @@
   </div>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const T = {
   ja: {
     lang: 'ja', pageTitle: 'HomeStock - いま、家に何がある？をポケットに。',
@@ -442,12 +450,4 @@ function applyLang(lang) {
   localStorage.setItem('hs_lang', lang);
 }
 
-function toggleLang() { applyLang(currentLang === 'ja' ? 'en' : 'ja'); }
-
-// 初期化
-const saved = localStorage.getItem('hs_lang');
-const browserLang = (navigator.language || 'ja').toLowerCase().startsWith('ja') ? 'ja' : 'en';
-applyLang(saved || browserLang);
-</script>
-</body>
-</html>
+function toggleLang() { applyLang(currentLang =

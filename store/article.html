@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Guide — Dashi Press</title>
+<meta name="description" content="Read a free preview, then get the full guide as an instant download.">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="store.css">
+<script src="config.js"></script>
+<script src="store.js"></script>
+</head>
+<body>
+<header class="site"><div class="wrap">
+  <a class="logo" href="./" data-brand>Dashi Press</a>
+  <nav class="site"><a href="./">Guides</a><a href="legal.html">Terms &amp; refunds</a></nav>
+</div></header>
+<main id="main"><p class="wrap empty">Loading…</p></main>
+<footer class="site"><div class="wrap">
+  <span>&copy; <span data-year></span> <span data-brand-plain>Dashi Press</span> · Guides are drafted with AI assistance.</span>
+  <span><a href="legal.html">Terms, refunds &amp; legal notice</a><span data-contact></span></span>
+</div></footer>
+<script>
+(async () => {
+  const { cfg, esc, md, price, coverStyle, loadArticles } = Store;
+  const main = document.getElementById("main");
+  const slug = new URLSearchParams(location.search).get("slug");
+  let a;
+  try { a = (await loadArticles()).find((x) => x.slug === slug); } catch {}
+  if (!a) { main.innerHTML = '<p class="wrap empty">Guide not found. <a href="./">Browse all guides</a>.</p>'; return; }
+
+  document.title = `${a.title} — ${cfg.brand}`;
+  document.querySelector('meta[name="description"]').content = a.subtitle;
+  const checkout = a.checkoutUrl || cfg.defaultCheckoutUrl;
+  const toc = (a.tableOfContents || []).map((t) => `<li>${esc(t)}</li>`).join("");
+
+  main.innerHTML = `
+    <article class="post">
+      <div class="cover" style="${coverStyle(a)}" aria-hidden="true">${esc(a.cover?.emoji || "📘")}</div>
+      <span class="chip">${esc(a.category)}</span>
+      <h1>${esc(a.title)}</h1>
+      <p class="sub">${esc(a.subtitle)}</p>
+      <p class="note">${Number(a.readingMinutes) || "?"} min read · Published ${esc(String(a.publishedAt).slice(0, 10))}</p>
+      <div class="prose fade">${md(a.previewMarkdown)}</div>
+      <section class="paywall">
+        <h3>Keep reading — ${price(a.priceUsd)}</h3>
+        <p>The full guide is delivered instantly as a downloadable file. Inside:</p>
+        <ol>${toc}</ol>
+        <a class="btn" ${checkout ? `href="${esc(checkout)}" rel="noopener"` : 'aria-disabled="true"'}>${checkout ? "Get the full guide" : "Coming soon"}</a>
+        <p class="note">Secure checkout by our payment partner. Taxes calculated at checkout. 14-day refund if the guide isn't useful to you.${a.aiAssisted ? " This guide was drafted with AI assistance." : ""}</p>
+      </section>
+    </article>`;
+})();
+</script>
+</body>
+</html>

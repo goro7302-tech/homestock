@@ -1,0 +1,61 @@
+name: Dashi Press — auto-publish a new guide
+
+on:
+  schedule:
+    # Every Monday and Thursday, 10:17 JST (01:17 UTC)
+    - cron: '17 1 * * 1,4'
+  workflow_dispatch:
+    inputs:
+      category:
+        description: 'Category (leave empty to pick the least-covered one)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install generator dependencies
+        working-directory: scripts/store
+        run: npm install --no-audit --no-fund
+
+      - name: Generate guide with Claude
+        id: gen
+        working-directory: scripts/store
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CATEGORY: ${{ github.event.inputs.category }}
+        run: |
+          if [ -n "$CATEGORY" ]; then
+            node generate-article.mjs --category "$CATEGORY"
+          else
+            node generate-article.mjs
+          fi
+
+      # The paid full text is kept OUT of the public repo: download it from the run's
+      # artifacts and upload it to your checkout platform.
+      - name: Upload full guide (private artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: guide-${{ steps.gen.outputs.slug }}
+          path: scripts/store/out/${{ steps.gen.outputs.slug }}.md
+          retention-days: 90
+
+      - name: Commit preview to the store
+        env:
+          TITLE: ${{ steps.gen.outputs.title }}
+        run: |
+          git config user.name "dashi-press-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add store/data/articles.json
+          git commit -m "Store: add guide: $TITLE"
+          git push

@@ -1,15 +1,58 @@
 {
   "articles": [
     {
+      "slug": "anime-japanese-vs-real-japanese",
+      "title": "Anime Japanese vs. Real Japanese: A Field Guide for Adult Learners",
+      "subtitle": "Keep learning from the shows, manga and games you love, without sounding like a cartoon villain when you speak to real people in Japan.",
+      "category": "Language & Culture",
+      "tags": [
+        "japanese language",
+        "anime",
+        "manga",
+        "pop culture",
+        "keigo",
+        "study methods",
+        "adult learners",
+        "speech register"
+      ],
+      "priceUsd": 12,
+      "readingMinutes": 17,
+      "publishedAt": "2026-11-12",
+      "cover": {
+        "emoji": "💬",
+        "hue": 330
+      },
+      "aiAssisted": true,
+      "checkoutUrl": "",
+      "tableOfContents": [
+        "Why Anime Japanese Sounds Wrong in Real Life",
+        "Role Language: The Hidden Code in Character Speech",
+        "Pronouns, Suffixes and Endings: A Field Guide",
+        "The Register Converter: Anime Lines Rewritten for Real Life",
+        "Choosing What to Watch and Read: The Register Ladder",
+        "The Three-Pass Study Method",
+        "Taking It Offline: Testing Your Japanese With Real People",
+        "Checklists and a 4-Week Plan"
+      ],
+      "previewMarkdown": "## Why Anime Japanese Sounds Wrong in Real Life\n\nA lot of adults start Japanese because of anime, manga, games or TV dramas. That is a great reason. It is motivation that lasts for years. The trouble shows up the first time you use what you have absorbed.\n\nYou call yourself 俺 (*ore*, a rough masculine 'I') in front of a hotel clerk. You end a sentence with ぞ (*zo*). You address a new colleague as お前 (*omae*, a blunt 'you'). The room goes very slightly cold. Nobody corrects you. They just quietly file you under 'learned it from cartoons'.\n\nThis happens because fiction is *designed* to sound different from real speech. Writers use speech style as shorthand for character: the delinquent, the old professor, the rich girl, the samurai. Real Japanese adults spend most of the day in a narrow, polite, fairly neutral register, especially with people they don't know well.\n\nYou don't need to stop watching. You need a filter. This guide gives you three tools:\n\n1. **A field guide** to the pronouns, endings and words that signal 'this is character speech, not something to copy'.\n2. **A register converter**: common anime-style lines rewritten into what an adult would actually say, with notes on when the casual version is fine.\n3. **A study system** that turns the shows you already watch into efficient, register-aware practice.\n\n### The one rule to start with today\n\nBefore you copy any line, ask: *who is speaking, to whom, and would the listener be offended in real life?* If a teenage boy is shouting at a rival, the line is almost certainly not for you to use with a stranger.\n\nWhen unsure, default to the **desu/masu** form (です・ます, the basic polite style) and **watashi** (私, the neutral 'I'). Foreign learners are rarely judged for sounding too politely neutral. Plenty are judged for sounding like a manga villain.\n\n### Quick self-check\n\nIf you already use any of these with people you don't know well, read the rest of this guide before your next conversation: 俺 *ore*, お前 *omae*, てめえ *temee*, 貴様 *kisama*, ～ぞ *zo*, ～ぜ *ze*, 黙れ *damare*, うるさい *urusai*."
+    },
+    {
       "slug": "first-90-days-in-tokyo",
       "title": "Your First 90 Days in Tokyo",
       "subtitle": "Residence card, bank account, phone, health insurance — in the order that actually works.",
       "category": "Living in Japan",
-      "tags": ["relocation", "tokyo", "paperwork"],
+      "tags": [
+        "relocation",
+        "tokyo",
+        "paperwork"
+      ],
       "priceUsd": 9,
       "readingMinutes": 28,
       "publishedAt": "2026-11-11",
-      "cover": { "emoji": "🗼", "hue": 12 },
+      "cover": {
+        "emoji": "🗼",
+        "hue": 12
+      },
       "aiAssisted": true,
       "checkoutUrl": "",
       "tableOfContents": [
@@ -27,11 +70,18 @@
       "title": "Writing Business Email to Japanese Companies",
       "subtitle": "Templates and the unwritten rules for getting replies from Japanese partners.",
       "category": "Business",
-      "tags": ["email", "etiquette", "b2b"],
+      "tags": [
+        "email",
+        "etiquette",
+        "b2b"
+      ],
       "priceUsd": 12,
       "readingMinutes": 34,
       "publishedAt": "2026-11-10",
-      "cover": { "emoji": "✉️", "hue": 210 },
+      "cover": {
+        "emoji": "✉️",
+        "hue": 210
+      },
       "aiAssisted": true,
       "checkoutUrl": "",
       "tableOfContents": [
@@ -48,11 +98,18 @@
       "title": "Kyoto Beyond the Crowds",
       "subtitle": "A local-style 3-day plan with quiet temples, early-morning routes and where residents eat.",
       "category": "Travel",
-      "tags": ["kyoto", "itinerary", "food"],
+      "tags": [
+        "kyoto",
+        "itinerary",
+        "food"
+      ],
       "priceUsd": 7,
       "readingMinutes": 22,
       "publishedAt": "2026-11-09",
-      "cover": { "emoji": "⛩️", "hue": 340 },
+      "cover": {
+        "emoji": "⛩️",
+        "hue": 340
+      },
       "aiAssisted": true,
       "checkoutUrl": "",
       "tableOfContents": [

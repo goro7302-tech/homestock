@@ -36,7 +36,7 @@ GitHub Actions(週2回)
    git commit -am "Store: checkout link for <slug>" && git push
    ```
 
-最初から入っている3本(東京・ビジネスメール・京都)はプレビューのみのサンプルです。売る場合は全文を用意するか、削除してください。
+
 
 PDFが付く前に生成された記事は、Actionsの「Dashi Press — make PDF from an earlier guide」を開き、元の実行のRun ID(URLの `/actions/runs/` の後ろの数字)を入れて実行するとPDFが作られます。
 

@@ -12,7 +12,7 @@
 GitHub Actions(週2回)
   └─ Claudeが新しいガイドを執筆
        ├─ 無料プレビュー・目次・価格 → store/data/articles.json にコミット → サイトに掲載
-       └─ 有料の全文(Markdown)       → Actionsの「Artifacts」に保存(公開リポジトリには入れない)
+       └─ 有料の全文(PDF + Markdown) → Actionsの「Artifacts」に保存(公開リポジトリには入れない)
 あなた
   └─ 全文を決済サービスに商品として登録 → 決済リンクを記事に設定 → 販売開始
 ```
@@ -29,7 +29,7 @@ GitHub Actions(週2回)
 ## 新しい記事が出たら(1本あたり数分)
 
 1. Actionsの実行結果から `guide-<slug>` のArtifactをダウンロードし、**内容を読んで事実を確認します**(下の注意点を参照)。
-2. 決済サービスで商品を作り、そのMarkdown(またはPDFに変換したもの)を添付します。価格は記事のJSONに合わせます。
+2. 決済サービスで商品を作り、PDFを添付します。価格は記事のJSONに合わせます。
 3. 決済リンクを記事に設定します:
    ```bash
    cd scripts/store && node set-checkout.mjs <slug> https://xxxx.gumroad.com/l/yyyy
@@ -38,11 +38,14 @@ GitHub Actions(週2回)
 
 最初から入っている3本(東京・ビジネスメール・京都)はプレビューのみのサンプルです。売る場合は全文を用意するか、削除してください。
 
+PDFが付く前に生成された記事は、Actionsの「Dashi Press — make PDF from an earlier guide」を開き、元の実行のRun ID(URLの `/actions/runs/` の後ろの数字)を入れて実行するとPDFが作られます。
+
 ## ローカルで動かす
 
 ```bash
 cd scripts/store && npm install
 ANTHROPIC_API_KEY=... node generate-article.mjs --category "Business"   # 書き込みなしで試すなら --dry-run
+node render-pdf.mjs out/<slug>.md   # PDF化(Chromiumと日本語フォントが必要)
 cd ../.. && python3 -m http.server 8000   # → http://localhost:8000/store/
 ```
 

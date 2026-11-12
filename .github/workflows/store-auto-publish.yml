@@ -41,13 +41,26 @@ jobs:
             node generate-article.mjs
           fi
 
-      # The paid full text is kept OUT of the public repo: download it from the run's
-      # artifacts and upload it to your checkout platform.
+      - name: Install PDF tooling (Chromium + Japanese fonts)
+        working-directory: scripts/store
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q fonts-noto-cjk fonts-noto-core
+          npx playwright install --with-deps chromium
+
+      - name: Render PDF
+        working-directory: scripts/store
+        run: node render-pdf.mjs "out/${{ steps.gen.outputs.slug }}.md"
+
+      # The paid full text is kept OUT of the public repo: download the PDF from the
+      # run's artifacts and upload it to your checkout platform.
       - name: Upload full guide (private artifact)
         uses: actions/upload-artifact@v4
         with:
           name: guide-${{ steps.gen.outputs.slug }}
-          path: scripts/store/out/${{ steps.gen.outputs.slug }}.md
+          path: |
+            scripts/store/out/${{ steps.gen.outputs.slug }}.pdf
+            scripts/store/out/${{ steps.gen.outputs.slug }}.md
           retention-days: 90
 
       - name: Commit preview to the store

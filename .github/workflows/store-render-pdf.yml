@@ -1,0 +1,54 @@
+name: Dashi Press — make PDF from an earlier guide
+
+# For guides generated before PDFs were added: takes the Markdown artifact from an
+# earlier run and produces a PDF artifact in this run.
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Run ID of the earlier generate run (the number in its URL: /actions/runs/<run_id>)'
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Download Markdown from the earlier run
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ github.event.inputs.run_id }}
+          github-token: ${{ github.token }}
+          path: scripts/store/out
+          merge-multiple: true
+
+      - name: Install PDF tooling (Chromium + Japanese fonts)
+        working-directory: scripts/store
+        run: |
+          npm install --no-audit --no-fund
+          sudo apt-get update -q
+          sudo apt-get install -y -q fonts-noto-cjk fonts-noto-core
+          npx playwright install --with-deps chromium
+
+      - name: Render PDF(s)
+        id: render
+        working-directory: scripts/store
+        run: |
+          for f in out/*.md; do node render-pdf.mjs "$f"; done
+          echo "name=$(basename "$(ls out/*.md | head -1)" .md)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload PDF (private artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: guide-${{ steps.render.outputs.name }}-pdf
+          path: scripts/store/out/*.pdf
+          retention-days: 90

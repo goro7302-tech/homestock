@@ -1,6 +1,42 @@
 {
   "articles": [
     {
+      "slug": "first-30-days-in-japan-paperwork-playbook",
+      "title": "Your First 30 Days in Japan: The Paperwork Playbook for New Residents",
+      "subtitle": "The exact order to handle your residence card, address registration, health insurance, pension, bank, phone and utilities, with the Japanese terms and counter scripts to get each one done on the first try.",
+      "category": "Living in Japan",
+      "tags": [
+        "living in japan",
+        "relocation",
+        "residence card",
+        "ward office",
+        "health insurance",
+        "banking",
+        "my number",
+        "new arrivals"
+      ],
+      "priceUsd": 12,
+      "readingMinutes": 17,
+      "publishedAt": "2026-11-16",
+      "cover": {
+        "emoji": "📋",
+        "hue": 205
+      },
+      "aiAssisted": true,
+      "checkoutUrl": "",
+      "tableOfContents": [
+        "Before You Land: Documents and Decisions That Save You Weeks",
+        "Day 0 at the Airport: Your Residence Card and Re-entry Basics",
+        "Days 1–14: The Ward Office Visit, Counter by Counter",
+        "Breaking the Bank–Phone Loop",
+        "Utilities, Internet and Your Apartment's Unwritten Rules",
+        "Taxes You Won't See Coming",
+        "Ongoing Obligations: Moving, Job Changes, Renewals and Leaving",
+        "Phrase Sheet and Master Checklist"
+      ],
+      "previewMarkdown": "## Why your first 30 days decide the next year\n\nJapan runs on registration. Your address, health insurance, pension, tax number and bank account are all linked, and almost all of them depend on one step happening first: registering your address at the local municipal office. Do the steps in the right order and most people are fully set up in two to three weeks. Do them out of order and you can spend a month stuck in loops: no bank account without a phone number, no phone contract without a bank account, no mail without a name on your mailbox.\n\nThis guide gives you the order, the Japanese words printed on the forms, and what to say at each counter.\n\n### The golden sequence\n\n1. **Residence card** (在留カード, *zairyū kādo*): usually handed to you at the airport.\n2. **Address registration** at your city or ward office, within 14 days of moving in.\n3. **Health insurance and pension**: same building, different counters, unless your employer enrolls you.\n4. **A working phone number**: a temporary one is fine.\n5. **Bank account**.\n6. **Utilities, mobile contract, direct debits.**\n\n### Three rules to know before you land\n\n- **The 14-day clock.** Mid- to long-term residents must notify their municipality of their address within 14 days of settling there. Missing it can cause problems later, including at visa renewal. Put it in your calendar now.\n- **Your residence card is your ID.** Mid- to long-term residents are legally required to carry it. Every office, bank and phone shop will ask for it, and your registered address gets printed on the back.\n- **Copies of your residence record are currency.** The *jūminhyō* (住民票), your certificate of residence, is requested for bank accounts, phone contracts, driving licence conversion and more. Order two or three copies on your first ward office visit.\n\nA hotel generally cannot be your registered address, so if you are staying in one, your clock effectively starts when you move into a real residence.\n\n*This guide is practical orientation, not legal, tax or immigration advice. Procedures vary by municipality and change over time; always confirm with the office concerned.*"
+    },
+    {
       "slug": "anime-japanese-vs-real-japanese",
       "title": "Anime Japanese vs. Real Japanese: A Field Guide for Adult Learners",
       "subtitle": "Keep learning from the shows, manga and games you love, without sounding like a cartoon villain when you speak to real people in Japan.",

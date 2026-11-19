@@ -1,6 +1,42 @@
 {
   "articles": [
     {
+      "slug": "japanese-b2b-client-first-email-to-first-invoice",
+      "title": "From First Email to First Invoice: Winning and Keeping a Japanese B2B Client",
+      "subtitle": "A step-by-step playbook for foreign companies and freelancers selling to Japanese businesses, covering first contact, meetings, internal approval, paperwork and getting paid on time, with Japanese templates you can adapt.",
+      "category": "Business",
+      "tags": [
+        "business",
+        "B2B sales",
+        "business email",
+        "negotiation",
+        "freelancing",
+        "invoicing",
+        "keigo",
+        "Japan"
+      ],
+      "priceUsd": 12,
+      "readingMinutes": 18,
+      "publishedAt": "2026-11-19",
+      "cover": {
+        "emoji": "🤝",
+        "hue": 212
+      },
+      "aiAssisted": true,
+      "checkoutUrl": "",
+      "tableOfContents": [
+        "Before You Start: Three Facts That Explain Almost Everything",
+        "Why Japanese B2B Deals Feel Slow (and Why That Is Good News)",
+        "First Contact: The Email That Gets Answered",
+        "The First Meeting and the Follow-Up That Wins It",
+        "Reading the Decision Process: Nemawashi, Ringi and \"We'll Consider It\"",
+        "The Paperwork Chain: From Quote to Invoice",
+        "Getting Paid: Closing Dates, Payment Terms and Tax Questions",
+        "Keeping the Client, Plus Checklists and Templates"
+      ],
+      "previewMarkdown": "Most foreign companies and freelancers who lose a Japanese client don't lose it in the negotiation. They lose it in the gaps. An email goes unanswered because it was addressed wrong. A meeting ends with no written follow-up. A quote doesn't match the format the buyer's accounting team needs. An invoice arrives after the monthly cutoff.\n\nThis guide walks you through the full chain of a Japanese B2B deal: first email, first meeting, internal approval, paperwork, payment and renewal. At each step you get the Japanese terms you'll see and templates you can adapt.\n\n## Before You Start: Three Facts That Explain Almost Everything\n\n**1. The person you talk to is rarely the person who decides.** Your contact is usually the 担当者 (*tantōsha*, person in charge). Their job is to build a case internally and carry it through approval. Your job is to make that case easy to build.\n\n**2. Decisions are documented, not announced.** Purchases typically go through 稟議 (*ringi*), a written approval request circulated up the chain. Anything you put in writing can end up copied into that document: clear scope, a quote, reasons to choose you.\n\n**3. Paperwork is part of the product.** A 見積書 (*mitsumorisho*, quotation) and a 請求書 (*seikyūsho*, invoice) are not formalities. Their format, dates and wording decide whether you get paid on time.\n\n### Quick win: fix your opening lines\n\nIf you take only one thing from this preview, fix the top of your emails. Japanese business email opens with the recipient's company, department and name, then a standard greeting:\n\n```\n株式会社〇〇\n営業部 山田様\n\n初めてご連絡いたします。\n```\n\nRead aloud, this is *Kabushiki-gaisha ___, Eigyō-bu Yamada-sama. Hajimete go-renraku itashimasu*: \"___ Co., Ltd., Sales Department, Ms./Mr. Yamada. I am contacting you for the first time.\"\n\nFrom your second email onward, replace that last line with お世話になっております (*osewa ni natte orimasu*). It is the standard opener and means roughly \"thank you for your continued support.\" You can write the rest of the email in English and this frame still helps. It shows you know how business correspondence works in Japan, and it makes your message easier to forward internally without embarrassment."
+    },
+    {
       "slug": "first-30-days-in-japan-paperwork-playbook",
       "title": "Your First 30 Days in Japan: The Paperwork Playbook for New Residents",
       "subtitle": "The exact order to handle your residence card, address registration, health insurance, pension, bank, phone and utilities, with the Japanese terms and counter scripts to get each one done on the first try.",

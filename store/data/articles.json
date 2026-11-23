@@ -1,6 +1,44 @@
 {
   "articles": [
     {
+      "slug": "san-in-coast-8-day-itinerary",
+      "title": "The San'in Coast in 8 Days: Sand Dunes, Ancient Shrines and a Silver Mine Without the Crowds",
+      "subtitle": "A tested, day-by-day route along Japan's quiet Sea of Japan coast, with exact transport logic, inn booking tactics and the Japanese you will actually need.",
+      "category": "Travel",
+      "tags": [
+        "San'in",
+        "Tottori",
+        "Shimane",
+        "Izumo",
+        "Matsue",
+        "Iwami Ginzan",
+        "itinerary",
+        "rural Japan",
+        "off the beaten path",
+        "onsen"
+      ],
+      "priceUsd": 12,
+      "readingMinutes": 17,
+      "publishedAt": "2026-11-23",
+      "cover": {
+        "emoji": "🌅",
+        "hue": 205
+      },
+      "aiAssisted": true,
+      "checkoutUrl": "",
+      "tableOfContents": [
+        "Why the San'in Coast, and Why Now",
+        "Getting There and Getting Around",
+        "The 8-Day Route, Day by Day",
+        "Where to Sleep: Minshuku, Ryokan and Business Hotels",
+        "Eating Along the Coast",
+        "When to Go: Seasons, Weather and Festivals",
+        "Variations: The 5-Day Version and Add-Ons",
+        "Pre-Trip Checklist and Phrases"
+      ],
+      "previewMarkdown": "## Why the San'in Coast, and Why Now\n\nThe classic Japan circuit of Tokyo, Kyoto, Osaka and Hiroshima is busier than it has ever been. Shrine queues, sold-out inns and buses too full to board are now normal in peak season. Yet a few hours north of Kyoto and Okayama, across the Chūgoku mountains, lies a coastline most international visitors never reach: **San'in** (山陰), literally \"the shaded side of the mountains.\"\n\nSan'in, as used here, means Tottori and Shimane prefectures along the Sea of Japan. Tottori is the least populous prefecture in the country, and Shimane is not far behind. In eight days you can walk across real sand dunes, stand in front of one of Japan's oldest and most important shrines, climb a castle keep that has survived since the early 1600s, walk into a silver-mine tunnel on a UNESCO World Heritage Site, and soak in an onsen town whose public baths are still used by locals every morning.\n\nThis guide gives you:\n\n- A day-by-day route from Kansai westward to Iwami Ginzan, finishing on the overnight sleeper train to Tokyo\n- How each connection actually works, including the lines that confuse first-timers\n- How to book and behave in **minshuku** (民宿, family-run guesthouses) and **ryokan** (旅館, traditional inns)\n- What to eat, where, and in which season\n- A 5-day short version and optional add-ons\n- A pre-trip checklist and the phrases you will genuinely use\n\n### The one rule that makes San'in work\n\nPlan around **frequency**, not distance. On some San'in lines a train an hour is good service, and certain buses run only a handful of times a day. Every evening, look up the next day's key departures in a route-search app using the Japanese place names, then write down two things: your outbound departure and the **last departure back** (終電 *shūden* for trains, 最終バス *saishū basu* for buses). Travelers who do this have a relaxed trip. Travelers who don't spend an afternoon at an empty bus stop."
+    },
+    {
       "slug": "japanese-b2b-client-first-email-to-first-invoice",
       "title": "From First Email to First Invoice: Winning and Keeping a Japanese B2B Client",
       "subtitle": "A step-by-step playbook for foreign companies and freelancers selling to Japanese businesses, covering first contact, meetings, internal approval, paperwork and getting paid on time, with Japanese templates you can adapt.",

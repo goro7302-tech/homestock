@@ -1,6 +1,41 @@
 {
   "articles": [
     {
+      "slug": "renting-an-apartment-in-japan-as-a-foreigner",
+      "title": "Keys in Hand: Renting an Apartment in Japan as a Foreigner",
+      "subtitle": "Read listings like a local, predict your true move-in cost, pass tenant screening, and get your deposit back when you leave.",
+      "category": "Living in Japan",
+      "tags": [
+        "living in japan",
+        "housing",
+        "renting",
+        "apartment hunting",
+        "moving to japan",
+        "deposit",
+        "expat life"
+      ],
+      "priceUsd": 12,
+      "readingMinutes": 17,
+      "publishedAt": "2026-11-26",
+      "cover": {
+        "emoji": "🔑",
+        "hue": 28
+      },
+      "aiAssisted": true,
+      "checkoutUrl": "",
+      "tableOfContents": [
+        "How Japanese Renting Actually Works",
+        "Decoding a Listing and Surviving the Viewing",
+        "The Real Cost of Moving In",
+        "Applying and Passing Tenant Screening",
+        "Contract Day: What to Read Before You Sign",
+        "Move-In Week: Protect Yourself From Day One",
+        "Moving Out and Getting Your Deposit Back",
+        "When the Standard Route Fails: UR, Share Houses and Other Options"
+      ],
+      "previewMarkdown": "## Why renting in Japan feels hard, and why it doesn't have to\n\nApartments are not scarce in Japan. The process feels hard for three other reasons. It runs on vocabulary nobody explains. It front-loads several months of costs before you get the keys. And some landlords still hesitate to rent to foreign tenants.\n\nOnce you can read a listing, estimate your move-in cost to within a few thousand yen, and present yourself as a low-risk applicant, the process becomes predictable.\n\nThis guide covers the whole lifecycle: search, viewing, application, contract, move-in, and moving out. That last step is where foreign tenants most often lose money.\n\n*This guide is general information, not legal advice. Rental practices vary by region and landlord. Always confirm details with your agency and in your written contract.*\n\n### Five words to learn before you open a listing\n\n- **Yachin (家賃)**: monthly rent.\n- **Kanrihi (管理費) / kyōekihi (共益費)**: a monthly management or common-area fee charged on top of rent. Always add it in when you compare listings.\n- **Shikikin (敷金)**: security deposit. It is refundable in principle, minus legitimate repair costs.\n- **Reikin (礼金)**: key money. A non-refundable payment to the landlord. It is sometimes zero and often negotiable.\n- **Hoshō gaisha (保証会社)**: rent guarantee company. Most landlords now require you to enroll and pay its fee. It largely replaces the personal Japanese guarantor that older guides warn about.\n\n### A budgeting rule of thumb\n\nAs a starting estimate, plan for upfront costs of **four to six times the monthly rent plus kanrihi**. That covers the usual mix of:\n\n- deposit and key money\n- agency fee\n- guarantor enrollment\n- insurance and lock change\n- the first month or two of rent\n\nSome listings come in far lower, and a few come in higher. Section 3 shows how to calculate the real figure for a specific flat. What matters now is having that sum available in yen, usually by bank transfer, often within about a week of approval.\n\n### The habit that saves the most money\n\nOn the day you move in, photograph every scratch, stain and dent with timestamps, and send copies to the management company. When you leave, documentation often decides who pays for what. Section 7 explains how to use it."
+    },
+    {
       "slug": "san-in-coast-8-day-itinerary",
       "title": "The San'in Coast in 8 Days: Sand Dunes, Ancient Shrines and a Silver Mine Without the Crowds",
       "subtitle": "A tested, day-by-day route along Japan's quiet Sea of Japan coast, with exact transport logic, inn booking tactics and the Japanese you will actually need.",
